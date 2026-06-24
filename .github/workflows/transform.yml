@@ -25,6 +25,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
       - name: Download source CSV
         run: |
           curl -fsSL \
@@ -35,6 +38,11 @@ jobs:
 
       - name: Run transform
         run: python transform.py --input source_fixtures.csv --output fixtures_import.csv
+
+      - name: Upload to Google Sheet
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+        run: python sheets_upload.py --input fixtures_import.csv
 
       - name: Commit and push if changed
         run: |
