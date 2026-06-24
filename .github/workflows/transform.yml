@@ -23,8 +23,16 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Download source CSV
+        run: |
+          curl -fsSL \
+            -H "Authorization: token ${{ secrets.FIXTURE_MERGING_PAT }}" \
+            -H "Accept: application/vnd.github.v3.raw" \
+            "https://api.github.com/repos/iaing80/FA-Fixtures-Pull/contents/fixtures/latest.csv" \
+            -o source_fixtures.csv
+
       - name: Run transform
-        run: python transform.py --output fixtures_import.csv
+        run: python transform.py --input source_fixtures.csv --output fixtures_import.csv
 
       - name: Commit and push if changed
         run: |
