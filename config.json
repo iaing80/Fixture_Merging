@@ -1,0 +1,36 @@
+{
+  "_comment": "Map the team names from the scraper CSV to exact group_name values in the Google Sheet Groups tab.",
+  "team_mapping": {
+    "Peterborough Northside FC U7": "U7",
+    "Peterborough Northside FC U8": "U8",
+    "Peterborough Northside FC U9": "U9",
+    "Peterborough Northside FC U10": "U10",
+    "Peterborough Northside FC U11": "U11",
+    "Peterborough Northside FC U12": "U12",
+    "Peterborough Northside FC U13": "U13",
+    "Peterborough Northside FC U14": "U14",
+    "Peterborough Northside FC U15": "U15",
+    "Peterborough Northside FC U16": "U16",
+    "Peterborough Northside FC U18": "U18"
+  },
+  "defaults": {
+    "end_time": "",
+    "meet_time_mins": "30",
+    "venue_address": "",
+    "directions_url": "",
+    "description": "",
+    "rsvp_date": "",
+    "send_date": "",
+    "max_players": "0",
+    "auto_accept": "FALSE",
+    "responses_admin_only": "FALSE",
+    "comments_disabled": "FALSE",
+    "banner_colour": ""
+  },
+  "competition_template_overrides": {
+    "friendly": "friendly",
+    "cup": "tournament",
+    "league": null
+  },
+  "source_csv_url": "https://raw.githubusercontent.com/iaing80/FA-Fixtures-Pull/main/fixtures.csv"
+}

@@ -1,0 +1,39 @@
+name: Transform Fixtures CSV
+
+on:
+  # Triggered by FA-Fixtures-Pull repo via repository_dispatch after a scrape
+  repository_dispatch:
+    types: [fixtures-updated]
+  # Daily safety net in case the dispatch event is missed
+  schedule:
+    - cron: "30 6 * * *"
+  # Allow manual trigger from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  transform:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run transform
+        run: python transform.py --output fixtures_import.csv
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add fixtures_import.csv
+          if git diff --cached --quiet; then
+            echo "No changes to fixtures_import.csv"
+          else
+            git commit -m "chore: update fixtures_import.csv [skip ci]"
+            git push
+          fi

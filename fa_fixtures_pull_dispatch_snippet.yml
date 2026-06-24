@@ -1,0 +1,15 @@
+# Add this step to the end of your FA-Fixtures-Pull scraper workflow
+# so it triggers the transform in this repo automatically after a scrape.
+#
+# Prerequisites:
+#   1. Create a GitHub Personal Access Token (PAT) with `repo` scope
+#      (or a fine-grained token scoped to iaing80/Fixture_Merging with
+#      "Contents: Read and Write" and "Actions: Read and Write" permissions).
+#   2. Add it as a repository secret in FA-Fixtures-Pull named FIXTURE_MERGING_PAT.
+
+      - name: Trigger Fixture_Merging transform
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.FIXTURE_MERGING_PAT }}
+          repository: iaing80/Fixture_Merging
+          event-type: fixtures-updated
