@@ -13,20 +13,19 @@
     "Peterborough Northside FC U15": "PNFC U15 Boys",
     "Peterborough Northside FC U16": "PNFC U16 Boys",
     "Peterborough Northside FC U17": "PNFC U17 Boys",
-    "Peterborough Northside FC U18": "PNFC U18 Boys"
-    "Peterborough Northside U7 Girls":"PNFC U7 Girls"
-    "Peterborough Northside U8 Girls":"PNFC U8 Girls"
-    "Peterborough Northside U9 Girls":"PNFC U9 Girls"
-    "Peterborough Northside U10 Girls":"PNFC U10 Girls"
-    "Peterborough Northside U11 Girls":"PNFC U11 Girls"
-    "Peterborough Northside U12 Girls":"PNFC U12 Girls"
-    "Peterborough Northside U13 Girls":"PNFC U13 Girls"
-    "Peterborough Northside U14 Girls":"PNFC U14 Girls"
-    "Peterborough Northside U15 Girls":"PNFC U15 Girls"
-    "Peterborough Northside U16 Girls":"PNFC U16 Girls"
-    "Peterborough Northside U17 Girls":"PNFC U17 Girls"
-    "Peterborough Northside U18 Girls":"PNFC U18 Girls"
-    
+    "Peterborough Northside FC U18": "PNFC U18 Boys",
+    "Peterborough Northside U7 Girls": "PNFC U7 Girls",
+    "Peterborough Northside U8 Girls": "PNFC U8 Girls",
+    "Peterborough Northside U9 Girls": "PNFC U9 Girls",
+    "Peterborough Northside U10 Girls": "PNFC U10 Girls",
+    "Peterborough Northside U11 Girls": "PNFC U11 Girls",
+    "Peterborough Northside U12 Girls": "PNFC U12 Girls",
+    "Peterborough Northside U13 Girls": "PNFC U13 Girls",
+    "Peterborough Northside U14 Girls": "PNFC U14 Girls",
+    "Peterborough Northside U15 Girls": "PNFC U15 Girls",
+    "Peterborough Northside U16 Girls": "PNFC U16 Girls",
+    "Peterborough Northside U17 Girls": "PNFC U17 Girls",
+    "Peterborough Northside U18 Girls": "PNFC U18 Girls"
   },
   "defaults": {
     "end_time": "",
@@ -47,5 +46,5 @@
     "cup": "tournament",
     "league": null
   },
-  "source_csv_url": "https://github.com/iaing80/FA-Fixtures-Pull/blob/claude/peterborough-northside-fa-fixtures-0b8wpc/fixtures/latest.csv"
+  "source_csv_url": "https://raw.githubusercontent.com/iaing80/FA-Fixtures-Pull/main/fixtures/latest.csv"
 }
