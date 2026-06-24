@@ -46,7 +46,7 @@ def append_rows(service, rows: list[list]):
     service.spreadsheets().values().append(
         spreadsheetId=SPREADSHEET_ID,
         range=f"{SHEET_TAB}!A1",
-        valueInputOption="USER_ENTERED",
+        valueInputOption="RAW",
         insertDataOption="INSERT_ROWS",
         body=body,
     ).execute()
