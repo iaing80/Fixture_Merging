@@ -91,6 +91,15 @@ def derive_template(home_away: str, competition: str, overrides: dict) -> str:
     return home_away.strip().lower()
 
 
+def normalise_team_name(name: str) -> str:
+    """Lowercase and drop a standalone "FC" token, so e.g. "Peterborough
+    Northside U10" matches a config key of "Peterborough Northside FC U10".
+    The scraper's source data doesn't include "FC" for boys' teams even
+    though that's the correct/canonical team name in config.json."""
+    words = [w for w in name.split() if w.upper() != "FC"]
+    return " ".join(words).lower()
+
+
 def transform_row(row: dict, team_mapping: dict, defaults: dict, comp_overrides: dict) -> dict | None:
     team = row.get("team", "").strip()
     group_name = team_mapping.get(team)
@@ -99,6 +108,13 @@ def transform_row(row: dict, team_mapping: dict, defaults: dict, comp_overrides:
         team_lower = team.lower()
         for k, v in team_mapping.items():
             if k.lower() == team_lower:
+                group_name = v
+                break
+    if group_name is None:
+        # Try again ignoring a standalone "FC" token on either side
+        team_normalised = normalise_team_name(team)
+        for k, v in team_mapping.items():
+            if normalise_team_name(k) == team_normalised:
                 group_name = v
                 break
     if group_name is None:
