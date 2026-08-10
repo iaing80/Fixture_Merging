@@ -57,7 +57,7 @@ def fetch_csv(url: str) -> str:
 def normalise_date(raw: str) -> str:
     """Accept DD/MM/YYYY and pass through; try common alternatives."""
     raw = raw.strip()
-    for fmt in ("%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y"):
+    for fmt in ("%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y", "%d/%m/%y", "%d-%m-%y"):
         try:
             return datetime.strptime(raw, fmt).strftime("%d/%m/%Y")
         except ValueError:
