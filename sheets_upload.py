@@ -9,9 +9,10 @@ alone. On each run:
 
   - A fixture_id not yet in the sheet is appended as a brand-new row.
   - A fixture_id already in the sheet whose date/kick_off/venue/opponent
-    has changed is left untouched (its Spond event, if any, is NOT
-    auto-updated) but flagged in review_flag/review_detail for a human
-    to check and action manually.
+    has changed has those columns synced to FA's current data and is
+    flagged in review_flag/review_detail — but its Spond event, if any,
+    is NOT auto-updated. A human reviews the flag and pushes the update
+    to Spond via 17_apply_changes.py (in the PNFC repo) when ready.
   - A fixture_id that was in the sheet with an event_id (so a real Spond
     event exists) but is missing from today's scrape entirely is flagged
     as a possible cancellation/postponement, again without touching Spond.
@@ -208,6 +209,13 @@ def main():
         changes = diff_watched_fields(existing, row)
         if changes:
             detail_text = "; ".join(changes)
+            # Keep the sheet's own data columns in sync with FA's current
+            # data — review_flag/review_detail signal that Spond hasn't
+            # caught up yet, not that the sheet itself is stale.
+            for field in WATCHED_FIELDS:
+                new_val = row.get(field, "").strip()
+                if existing.get(field, "").strip() != new_val:
+                    cell_updates.append((sheet_row, field, new_val))
             already_flagged = (existing.get("review_flag", "").strip() == "CHANGED"
                                 and existing.get("review_detail", "").strip() == detail_text)
             if not already_flagged:
