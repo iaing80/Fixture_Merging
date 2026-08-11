@@ -154,9 +154,21 @@ def diff_watched_fields(existing: dict, incoming: dict) -> list[str]:
     return changes
 
 
+def fixture_heading(row: dict) -> str:
+    group = row.get("group_name", "").strip()
+    opponent = row.get("opponent", "").strip()
+    date = row.get("date", "").strip()
+    kick_off = row.get("kick_off", "").strip()
+    heading = f"{group} vs {opponent}".strip(" vs")
+    return f"{heading} ({date} {kick_off})".strip()
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", default="fixtures_import.csv")
+    parser.add_argument("--notify-summary", default="notify_summary.json",
+                         help="Path to write a JSON summary of new/changed/cancelled "
+                              "fixtures for a downstream notification step.")
     args = parser.parse_args()
 
     path = Path(args.input)
@@ -170,6 +182,7 @@ def main():
 
     if not input_rows:
         print("No rows to upload.", file=sys.stderr)
+        write_notify_summary(args.notify_summary, [], [], [])
         return
 
     service = get_service()
@@ -186,6 +199,8 @@ def main():
     seen_fixture_ids = set()
     changed_count = 0
     cleared_count = 0
+    changed_summary = []
+    cancelled_summary = []
 
     for row in input_rows:
         fid = row.get("fixture_id", "").strip()
@@ -228,6 +243,7 @@ def main():
                 cell_updates.append((sheet_row, "review_flag", "CHANGED"))
                 cell_updates.append((sheet_row, "review_detail", detail_text))
                 changed_count += 1
+                changed_summary.append({"heading": fixture_heading(row), "detail": detail_text})
         elif existing.get("review_flag", "").strip():
             # Previously flagged (correctly or not) but no longer differs —
             # e.g. FA's data reverted, or a fixed comparison stops treating
@@ -250,6 +266,7 @@ def main():
             cell_updates.append((r["_sheet_row"], "review_detail",
                                   "Missing from FA site — check for postponement/cancellation"))
             cancelled_count += 1
+            cancelled_summary.append({"heading": fixture_heading(r)})
 
     if cell_updates:
         print(f"Updating {len(cell_updates)} cell(s): {changed_count} changed fixture(s) flagged, "
@@ -257,14 +274,31 @@ def main():
               f"{cleared_count} stale flag(s) cleared.", file=sys.stderr)
         batch_write_cells(service, cell_updates)
 
-    if not new_rows:
-        print("No new fixtures to upload.", file=sys.stderr)
-        return
+    new_summary = [{"heading": fixture_heading(row)} for row in new_rows]
 
-    values = [[row.get(col, "") for col in OUTPUT_FIELDS] for row in new_rows]
-    print(f"Appending {len(values)} new row(s) to '{SHEET_TAB}' tab...", file=sys.stderr)
-    append_rows(service, values)
-    print("Done.", file=sys.stderr)
+    if new_rows:
+        values = [[row.get(col, "") for col in OUTPUT_FIELDS] for row in new_rows]
+        print(f"Appending {len(values)} new row(s) to '{SHEET_TAB}' tab...", file=sys.stderr)
+        append_rows(service, values)
+        print("Done.", file=sys.stderr)
+    else:
+        print("No new fixtures to upload.", file=sys.stderr)
+
+    write_notify_summary(args.notify_summary, new_summary, changed_summary, cancelled_summary)
+
+
+def write_notify_summary(path, new_summary, changed_summary, cancelled_summary):
+    """Write a JSON summary of this run's new/changed/cancelled fixtures for a
+    downstream notification step (e.g. a Discord webhook in the workflow) to
+    read — kept separate from the sheet writes above so notification delivery
+    can fail or be skipped without affecting the sheet itself."""
+    summary = {
+        "new_fixtures": new_summary,
+        "changed_fixtures": changed_summary,
+        "cancelled_fixtures": cancelled_summary,
+    }
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(summary, f, indent=2)
 
 
 if __name__ == "__main__":
