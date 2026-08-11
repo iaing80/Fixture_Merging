@@ -62,6 +62,11 @@ LEGACY_KEY_FIELDS = ("group_name", "date", "kick_off", "opponent")
 # review rather than applied automatically.
 WATCHED_FIELDS = ("date", "kick_off", "venue_name", "opponent")
 
+# Free-text fields compared case-insensitively — FA's site renders venue
+# names in ALL CAPS while the sheet may have them in mixed case (manually
+# entered, or from an older pipeline run), which isn't a real change.
+CASE_INSENSITIVE_FIELDS = {"venue_name", "opponent"}
+
 
 def get_service():
     creds_json = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON")
@@ -142,7 +147,8 @@ def diff_watched_fields(existing: dict, incoming: dict) -> list[str]:
     for field in WATCHED_FIELDS:
         old = existing.get(field, "").strip()
         new = incoming.get(field, "").strip()
-        if old != new:
+        old_cmp, new_cmp = (old.upper(), new.upper()) if field in CASE_INSENSITIVE_FIELDS else (old, new)
+        if old_cmp != new_cmp:
             changes.append(f"{field}: '{old}' → '{new}'")
     return changes
 
@@ -178,6 +184,7 @@ def main():
     cell_updates = []
     seen_fixture_ids = set()
     changed_count = 0
+    cleared_count = 0
 
     for row in input_rows:
         fid = row.get("fixture_id", "").strip()
@@ -207,6 +214,14 @@ def main():
                 cell_updates.append((sheet_row, "review_flag", "CHANGED"))
                 cell_updates.append((sheet_row, "review_detail", detail_text))
                 changed_count += 1
+        elif existing.get("review_flag", "").strip():
+            # Previously flagged (correctly or not) but no longer differs —
+            # e.g. FA's data reverted, or a fixed comparison stops treating
+            # it as a change. Clear the stale flag rather than leaving it
+            # to mislead review forever.
+            cell_updates.append((sheet_row, "review_flag", ""))
+            cell_updates.append((sheet_row, "review_detail", ""))
+            cleared_count += 1
 
     # Possible cancellations: sheet rows with a real Spond event that simply
     # weren't seen at all in today's scrape.
@@ -224,7 +239,8 @@ def main():
 
     if cell_updates:
         print(f"Updating {len(cell_updates)} cell(s): {changed_count} changed fixture(s) flagged, "
-              f"{cancelled_count} possible cancellation(s) flagged.", file=sys.stderr)
+              f"{cancelled_count} possible cancellation(s) flagged, "
+              f"{cleared_count} stale flag(s) cleared.", file=sys.stderr)
         batch_write_cells(service, cell_updates)
 
     if not new_rows:
