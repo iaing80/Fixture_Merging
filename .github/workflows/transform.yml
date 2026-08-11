@@ -45,7 +45,9 @@ jobs:
         run: python sheets_upload.py --input fixtures_import.csv --notify-summary notify_summary.json
 
       - name: Notify Discord of new/changed/cancelled fixtures
-        if: ${{ secrets.DISCORD_WEBHOOK_URL != '' }}
+        # No if-gate needed: notify_discord.py already no-ops (exit 0) when
+        # DISCORD_WEBHOOK_URL is unset, and the `secrets` context can't be
+        # referenced directly in a step's `if:` condition anyway.
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: python notify_discord.py --summary notify_summary.json
