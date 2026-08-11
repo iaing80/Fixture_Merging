@@ -42,7 +42,13 @@ jobs:
       - name: Upload to Google Sheet
         env:
           GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
-        run: python sheets_upload.py --input fixtures_import.csv
+        run: python sheets_upload.py --input fixtures_import.csv --notify-summary notify_summary.json
+
+      - name: Notify Discord of new/changed/cancelled fixtures
+        if: ${{ secrets.DISCORD_WEBHOOK_URL != '' }}
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python notify_discord.py --summary notify_summary.json
 
       - name: Commit and push if changed
         run: |
