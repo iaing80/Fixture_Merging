@@ -12,7 +12,7 @@ alone. On each run:
     has changed has those columns synced to FA's current data and is
     flagged in review_flag/review_detail — but its Spond event, if any,
     is NOT auto-updated. A human reviews the flag and pushes the update
-    to Spond via 05_apply_changes.py (in the PNFC repo) when ready.
+    to Spond via 17_apply_changes.py (in the PNFC repo) when ready.
   - A fixture_id that was in the sheet with an event_id (so a real Spond
     event exists) but is missing from today's scrape entirely is flagged
     as a possible cancellation/postponement, again without touching Spond.
