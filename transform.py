@@ -41,6 +41,9 @@ OUTPUT_FIELDS = [
     "status",
     "banner_status",
     "event_id",
+    "fixture_id",
+    "review_flag",
+    "review_detail",
 ]
 
 
@@ -149,6 +152,9 @@ def transform_row(row: dict, team_mapping: dict, defaults: dict, comp_overrides:
         "status": "",
         "banner_status": "",
         "event_id": "",
+        "fixture_id": row.get("fixture_id", "").strip(),
+        "review_flag": "",
+        "review_detail": "",
     }
 
 
