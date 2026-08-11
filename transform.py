@@ -13,11 +13,13 @@ import csv
 import json
 import sys
 import urllib.request
-from datetime import datetime
+from datetime import datetime, timedelta
 from io import StringIO
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).parent
+
+MATCH_DURATION_MINS = 90
 
 OUTPUT_FIELDS = [
     "group_name",
@@ -76,6 +78,15 @@ def normalise_time(raw: str) -> str:
     return raw
 
 
+def compute_end_time(kick_off: str, duration_mins: int = MATCH_DURATION_MINS) -> str:
+    """Add duration_mins onto a HH:MM kick-off time. Returns "" if kick_off isn't HH:MM."""
+    try:
+        start = datetime.strptime(kick_off.strip(), "%H:%M")
+    except ValueError:
+        return ""
+    return (start + timedelta(minutes=duration_mins)).strftime("%H:%M")
+
+
 def derive_template(home_away: str, competition: str, overrides: dict) -> str:
     """Map home/away field and optionally competition keywords to template value."""
     comp_lower = competition.lower()
@@ -127,11 +138,13 @@ def transform_row(row: dict, team_mapping: dict, defaults: dict, comp_overrides:
         comp_overrides,
     )
 
+    kick_off = normalise_time(row.get("time", ""))
+
     return {
         "group_name": group_name,
         "date": normalise_date(row.get("date", "")),
-        "kick_off": normalise_time(row.get("time", "")),
-        "end_time": defaults["end_time"],
+        "kick_off": kick_off,
+        "end_time": compute_end_time(kick_off) or defaults["end_time"],
         "meet_time_mins": defaults["meet_time_mins"],
         "template": template,
         "opponent": row.get("opponent", "").strip(),
