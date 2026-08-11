@@ -216,6 +216,12 @@ def main():
                 new_val = row.get(field, "").strip()
                 if existing.get(field, "").strip() != new_val:
                     cell_updates.append((sheet_row, field, new_val))
+                    if field == "venue_name":
+                        # venue_address is hand-maintained against the old
+                        # venue_name — it no longer describes the new venue,
+                        # so blank it rather than leave a stale address paired
+                        # with the new name.
+                        cell_updates.append((sheet_row, "venue_address", ""))
             already_flagged = (existing.get("review_flag", "").strip() == "CHANGED"
                                 and existing.get("review_detail", "").strip() == detail_text)
             if not already_flagged:
