@@ -59,7 +59,16 @@ def post_to_discord(webhook_url: str, content: str):
         content = content[:1990] + "\n…(truncated)"
     body = json.dumps({"content": content}).encode("utf-8")
     req = urllib.request.Request(
-        webhook_url, data=body, headers={"Content-Type": "application/json"}, method="POST"
+        webhook_url,
+        data=body,
+        # Discord's edge blocks urllib's default "Python-urllib/x.y" User-Agent
+        # as bot-like, returning a bare 403 with no useful body — a real
+        # browser/bot-style UA is required for the request to go through.
+        headers={
+            "Content-Type": "application/json",
+            "User-Agent": "DiscordBot (https://github.com/iaing80/Fixture_Merging, 1.0)",
+        },
+        method="POST",
     )
     with urllib.request.urlopen(req, timeout=15) as resp:
         if resp.status not in (200, 204):
