@@ -63,3 +63,19 @@ jobs:
             git commit -m "chore: update fixtures_import.csv [skip ci]"
             git push
           fi
+
+      - name: Notify Discord on failure
+        # Runs even if an earlier step failed, so a broken run is never
+        # silent — same DISCORD_WEBHOOK_URL secret as the success-path
+        # notify step above. Plain curl rather than notify_discord.py so it
+        # doesn't depend on any earlier step (Python setup, deps, etc.)
+        # having succeeded.
+        if: failure()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ -n "$DISCORD_WEBHOOK_URL" ]; then
+            curl -sS -X POST -H "Content-Type: application/json" \
+              -d "{\"content\": \"❌ **Fixture sync run failed** — <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}>\"}" \
+              "$DISCORD_WEBHOOK_URL"
+          fi

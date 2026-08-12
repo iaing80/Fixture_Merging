@@ -81,8 +81,10 @@ def main():
 
     message = build_message(summary)
     if message is None:
-        print("No new/changed/cancelled fixtures — nothing to notify.", file=sys.stderr)
-        return
+        # Still post a heartbeat rather than staying silent — silence is
+        # ambiguous (ran clean vs. never ran vs. crashed before this step).
+        message = "✅ Fixture sync ran — no new, changed, or cancelled fixtures."
+        print("No new/changed/cancelled fixtures — posting heartbeat.", file=sys.stderr)
 
     post_to_discord(webhook_url, message)
     print("Posted notification to Discord.", file=sys.stderr)
