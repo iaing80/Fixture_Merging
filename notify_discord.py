@@ -78,6 +78,12 @@ def post_to_discord(webhook_url: str, content: str):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--summary", default="notify_summary.json")
+    parser.add_argument("--quiet-if-empty", action="store_true",
+                         help="Skip the 'nothing changed' heartbeat entirely (still posts "
+                              "if there's real new/changed/cancelled content). Use this for "
+                              "a run that's just a safety net behind another trigger that "
+                              "already posts its own heartbeat, so a normal day doesn't post "
+                              "the same 'nothing changed' message twice.")
     args = parser.parse_args()
 
     webhook_url = os.environ.get("DISCORD_WEBHOOK_URL", "").strip()
@@ -90,6 +96,9 @@ def main():
 
     message = build_message(summary)
     if message is None:
+        if args.quiet_if_empty:
+            print("No new/changed/cancelled fixtures — quiet-if-empty set, skipping.", file=sys.stderr)
+            return
         # Still post a heartbeat rather than staying silent — silence is
         # ambiguous (ran clean vs. never ran vs. crashed before this step).
         message = "✅ Fixture sync ran — no new, changed, or cancelled fixtures."

@@ -48,9 +48,21 @@ jobs:
         # No if-gate needed: notify_discord.py already no-ops (exit 0) when
         # DISCORD_WEBHOOK_URL is unset, and the `secrets` context can't be
         # referenced directly in a step's `if:` condition anyway.
+        #
+        # --quiet-if-empty on the schedule-triggered (safety-net) run only:
+        # the repository_dispatch-triggered run already posts its own
+        # heartbeat/summary for the day, so the safety net shouldn't repeat
+        # "nothing changed" ~30-45 min later — it should only speak up if it
+        # finds something the dispatch run didn't already report (i.e. the
+        # dispatch silently failed to fire that day).
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: python notify_discord.py --summary notify_summary.json
+        run: |
+          ARGS="--summary notify_summary.json"
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            ARGS="$ARGS --quiet-if-empty"
+          fi
+          python notify_discord.py $ARGS
 
       - name: Commit and push if changed
         run: |
