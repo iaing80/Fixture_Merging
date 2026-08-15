@@ -44,7 +44,6 @@ OUTPUT_FIELDS = [
     "banner_status",
     "event_id",
     "fixture_id",
-    "fa_status",
     "review_flag",
     "review_detail",
 ]
@@ -163,11 +162,13 @@ def transform_row(row: dict, team_mapping: dict, defaults: dict, comp_overrides:
         "responses_admin_only": defaults["responses_admin_only"],
         "comments_disabled": defaults["comments_disabled"],
         "banner_colour": defaults["banner_colour"],
-        "status": "",
+        # Carries FA's own "Status / Notes" text (e.g. "Postponed") through
+        # to the sheet's existing (previously always-blank) status column —
+        # not to be confused with a Spond event's own status.
+        "status": row.get("status", "").strip(),
         "banner_status": "",
         "event_id": "",
         "fixture_id": row.get("fixture_id", "").strip(),
-        "fa_status": row.get("status", "").strip(),
         "review_flag": "",
         "review_detail": "",
     }

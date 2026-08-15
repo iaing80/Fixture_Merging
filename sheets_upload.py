@@ -18,8 +18,9 @@ alone. On each run:
     as a possible cancellation/postponement, again without touching Spond.
   - A fixture_id still present in the scrape but carrying FA's own
     "Status / Notes" text (e.g. "Postponed" — FA leaves the original row in
-    place rather than removing it) has that text synced to the fa_status
-    column and is flagged for review, so it doesn't look like an ordinary
+    place rather than removing it) has that text synced to the sheet's
+    status column (previously always blank — not a Spond event's own
+    status) and is flagged for review, so it doesn't look like an ordinary
     unplayed fixture next to whatever replacement FA has scheduled.
 
 Rows created before this fixture_id tracking existed are matched once by
@@ -53,7 +54,7 @@ OUTPUT_FIELDS = [
     "description", "rsvp_date", "send_date", "max_players", "auto_accept",
     "responses_admin_only", "comments_disabled", "banner_colour",
     "status", "banner_status", "event_id",
-    "fixture_id", "fa_status", "review_flag", "review_detail",
+    "fixture_id", "review_flag", "review_detail",
 ]
 
 # The Fixtures tab has a header row (1) plus a hint/notes row (2); real data
@@ -165,8 +166,8 @@ def fa_status_flag(fa_status: str) -> tuple[str, str]:
 
 
 # Amber (Material Design amber 500, #FFC107) used to highlight any row
-# awaiting human review, whatever put it there (CHANGED, CANCELLED?, a
-# fa_status flag like POSTPONED, ...).
+# awaiting human review, whatever put it there (CHANGED, CANCELLED?, an FA
+# status flag like POSTPONED, ...).
 REVIEW_HIGHLIGHT_COLOR = {"red": 1.0, "green": 0.757, "blue": 0.027}
 
 
@@ -292,10 +293,10 @@ def main():
         if matched_via_legacy and fid:
             cell_updates.append((sheet_row, "fixture_id", fid))
 
-        fa_status_new = row.get("fa_status", "").strip()
-        fa_status_old = existing.get("fa_status", "").strip()
+        fa_status_new = row.get("status", "").strip()
+        fa_status_old = existing.get("status", "").strip()
         if fa_status_new != fa_status_old:
-            cell_updates.append((sheet_row, "fa_status", fa_status_new))
+            cell_updates.append((sheet_row, "status", fa_status_new))
 
         if fa_status_new:
             # FA's own status/notes text (e.g. "Postponed") takes priority
@@ -371,7 +372,7 @@ def main():
     # notes) — flag it for review immediately rather than waiting for a
     # later run's diff to notice.
     for row in new_rows:
-        fa_status_new = row.get("fa_status", "").strip()
+        fa_status_new = row.get("status", "").strip()
         if fa_status_new:
             row["review_flag"], row["review_detail"] = fa_status_flag(fa_status_new)
             fa_status_summary.append({"heading": fixture_heading(row), "detail": row["review_detail"]})
