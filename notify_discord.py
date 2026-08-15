@@ -23,8 +23,9 @@ def build_message(summary: dict) -> str | None:
     new = summary.get("new_fixtures", [])
     changed = summary.get("changed_fixtures", [])
     cancelled = summary.get("cancelled_fixtures", [])
+    fa_status = summary.get("fa_status_fixtures", [])
 
-    if not (new or changed or cancelled):
+    if not (new or changed or cancelled or fa_status):
         return None
 
     lines = ["**Fixture sync update**"]
@@ -49,6 +50,13 @@ def build_message(summary: dict) -> str | None:
             lines.append(f"• {f['heading']}")
         if len(cancelled) > MAX_LIST_ITEMS:
             lines.append(f"…and {len(cancelled) - MAX_LIST_ITEMS} more")
+
+    if fa_status:
+        lines.append(f"\n🟠 **{len(fa_status)} fixture(s) flagged by FA** — review and update Spond")
+        for f in fa_status[:MAX_LIST_ITEMS]:
+            lines.append(f"• {f['heading']}\n  {f['detail']}")
+        if len(fa_status) > MAX_LIST_ITEMS:
+            lines.append(f"…and {len(fa_status) - MAX_LIST_ITEMS} more")
 
     return "\n".join(lines)
 

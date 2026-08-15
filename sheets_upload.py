@@ -16,6 +16,11 @@ alone. On each run:
   - A fixture_id that was in the sheet with an event_id (so a real Spond
     event exists) but is missing from today's scrape entirely is flagged
     as a possible cancellation/postponement, again without touching Spond.
+  - A fixture_id still present in the scrape but carrying FA's own
+    "Status / Notes" text (e.g. "Postponed" — FA leaves the original row in
+    place rather than removing it) has that text synced to the fa_status
+    column and is flagged for review, so it doesn't look like an ordinary
+    unplayed fixture next to whatever replacement FA has scheduled.
 
 Rows created before this fixture_id tracking existed are matched once by
 the old (group, date, kick_off, opponent) key and backfilled with their
@@ -48,7 +53,7 @@ OUTPUT_FIELDS = [
     "description", "rsvp_date", "send_date", "max_players", "auto_accept",
     "responses_admin_only", "comments_disabled", "banner_colour",
     "status", "banner_status", "event_id",
-    "fixture_id", "review_flag", "review_detail",
+    "fixture_id", "fa_status", "review_flag", "review_detail",
 ]
 
 # The Fixtures tab has a header row (1) plus a hint/notes row (2); real data
@@ -154,6 +159,69 @@ def diff_watched_fields(existing: dict, incoming: dict) -> list[str]:
     return changes
 
 
+def fa_status_flag(fa_status: str) -> tuple[str, str]:
+    """(review_flag, review_detail) for a non-empty FA status/notes value."""
+    return fa_status.upper(), f"FA status: {fa_status} — check for Spond update"
+
+
+# Amber (Material Design amber 500, #FFC107) used to highlight any row
+# awaiting human review, whatever put it there (CHANGED, CANCELLED?, a
+# fa_status flag like POSTPONED, ...).
+REVIEW_HIGHLIGHT_COLOR = {"red": 1.0, "green": 0.757, "blue": 0.027}
+
+
+def ensure_review_flag_highlighting(service):
+    """Make sure a conditional format rule exists that highlights a data row
+    amber whenever its review_flag cell is non-empty, so fixtures awaiting
+    review stand out in the sheet itself rather than only in review_flag's
+    raw text. Idempotent — checks for an existing matching rule first, since
+    this runs on every sheets_upload.py invocation."""
+    review_flag_col = col_letter(OUTPUT_FIELDS.index("review_flag") + 1)
+    formula = f"=${review_flag_col}{FIRST_DATA_ROW}<>\"\""
+
+    meta = service.spreadsheets().get(
+        spreadsheetId=SPREADSHEET_ID,
+        ranges=[SHEET_TAB],
+        fields="sheets(properties(sheetId,title),conditionalFormats)",
+    ).execute()
+    sheets = meta.get("sheets", [])
+    if not sheets:
+        raise RuntimeError(f"Sheet tab '{SHEET_TAB}' not found")
+    sheet = sheets[0]
+    sheet_id = sheet["properties"]["sheetId"]
+
+    for fmt in sheet.get("conditionalFormats", []):
+        rule = fmt.get("booleanRule", {})
+        values = rule.get("condition", {}).get("values", [])
+        if (rule.get("condition", {}).get("type") == "CUSTOM_FORMULA"
+                and values and values[0].get("userEnteredValue") == formula):
+            return  # already set up
+
+    request = {
+        "addConditionalFormatRule": {
+            "rule": {
+                "ranges": [{
+                    "sheetId": sheet_id,
+                    "startRowIndex": FIRST_DATA_ROW - 1,
+                    "startColumnIndex": 0,
+                    "endColumnIndex": len(OUTPUT_FIELDS),
+                }],
+                "booleanRule": {
+                    "condition": {
+                        "type": "CUSTOM_FORMULA",
+                        "values": [{"userEnteredValue": formula}],
+                    },
+                    "format": {"backgroundColor": REVIEW_HIGHLIGHT_COLOR},
+                },
+            },
+            "index": 0,
+        }
+    }
+    service.spreadsheets().batchUpdate(
+        spreadsheetId=SPREADSHEET_ID, body={"requests": [request]}
+    ).execute()
+
+
 def fixture_heading(row: dict) -> str:
     group = row.get("group_name", "").strip()
     opponent = row.get("opponent", "").strip()
@@ -182,10 +250,11 @@ def main():
 
     if not input_rows:
         print("No rows to upload.", file=sys.stderr)
-        write_notify_summary(args.notify_summary, [], [], [])
+        write_notify_summary(args.notify_summary, [], [], [], [])
         return
 
     service = get_service()
+    ensure_review_flag_highlighting(service)
     existing_rows = get_existing_rows(service)
     existing_by_fixture_id = {
         r["fixture_id"].strip(): r for r in existing_rows if r.get("fixture_id", "").strip()
@@ -199,8 +268,10 @@ def main():
     seen_fixture_ids = set()
     changed_count = 0
     cleared_count = 0
+    fa_status_count = 0
     changed_summary = []
     cancelled_summary = []
+    fa_status_summary = []
 
     for row in input_rows:
         fid = row.get("fixture_id", "").strip()
@@ -220,6 +291,26 @@ def main():
         sheet_row = existing["_sheet_row"]
         if matched_via_legacy and fid:
             cell_updates.append((sheet_row, "fixture_id", fid))
+
+        fa_status_new = row.get("fa_status", "").strip()
+        fa_status_old = existing.get("fa_status", "").strip()
+        if fa_status_new != fa_status_old:
+            cell_updates.append((sheet_row, "fa_status", fa_status_new))
+
+        if fa_status_new:
+            # FA's own status/notes text (e.g. "Postponed") takes priority
+            # over the watched-field diff below — a postponed fixture keeps
+            # its original date/venue on FA's site, so there's usually
+            # nothing else to diff, and this is the more useful signal.
+            flag_text, detail_text = fa_status_flag(fa_status_new)
+            already_flagged = (existing.get("review_flag", "").strip() == flag_text
+                                and existing.get("review_detail", "").strip() == detail_text)
+            if not already_flagged:
+                cell_updates.append((sheet_row, "review_flag", flag_text))
+                cell_updates.append((sheet_row, "review_detail", detail_text))
+                fa_status_count += 1
+                fa_status_summary.append({"heading": fixture_heading(row), "detail": detail_text})
+            continue
 
         changes = diff_watched_fields(existing, row)
         if changes:
@@ -270,9 +361,20 @@ def main():
 
     if cell_updates:
         print(f"Updating {len(cell_updates)} cell(s): {changed_count} changed fixture(s) flagged, "
+              f"{fa_status_count} FA status fixture(s) flagged, "
               f"{cancelled_count} possible cancellation(s) flagged, "
               f"{cleared_count} stale flag(s) cleared.", file=sys.stderr)
         batch_write_cells(service, cell_updates)
+
+    # A brand-new fixture can arrive already carrying an FA status (e.g. a
+    # rearranged fixture picked up for the first time still showing old
+    # notes) — flag it for review immediately rather than waiting for a
+    # later run's diff to notice.
+    for row in new_rows:
+        fa_status_new = row.get("fa_status", "").strip()
+        if fa_status_new:
+            row["review_flag"], row["review_detail"] = fa_status_flag(fa_status_new)
+            fa_status_summary.append({"heading": fixture_heading(row), "detail": row["review_detail"]})
 
     new_summary = [{"heading": fixture_heading(row)} for row in new_rows]
 
@@ -284,18 +386,19 @@ def main():
     else:
         print("No new fixtures to upload.", file=sys.stderr)
 
-    write_notify_summary(args.notify_summary, new_summary, changed_summary, cancelled_summary)
+    write_notify_summary(args.notify_summary, new_summary, changed_summary, cancelled_summary, fa_status_summary)
 
 
-def write_notify_summary(path, new_summary, changed_summary, cancelled_summary):
-    """Write a JSON summary of this run's new/changed/cancelled fixtures for a
-    downstream notification step (e.g. a Discord webhook in the workflow) to
-    read — kept separate from the sheet writes above so notification delivery
+def write_notify_summary(path, new_summary, changed_summary, cancelled_summary, fa_status_summary):
+    """Write a JSON summary of this run's new/changed/cancelled/FA-status fixtures
+    for a downstream notification step (e.g. a Discord webhook in the workflow)
+    to read — kept separate from the sheet writes above so notification delivery
     can fail or be skipped without affecting the sheet itself."""
     summary = {
         "new_fixtures": new_summary,
         "changed_fixtures": changed_summary,
         "cancelled_fixtures": cancelled_summary,
+        "fa_status_fixtures": fa_status_summary,
     }
     with open(path, "w", encoding="utf-8") as f:
         json.dump(summary, f, indent=2)
