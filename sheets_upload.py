@@ -18,10 +18,14 @@ alone. On each run:
     as a possible cancellation/postponement, again without touching Spond.
   - A fixture_id still present in the scrape but carrying FA's own
     "Status / Notes" text (e.g. "Postponed" — FA leaves the original row in
-    place rather than removing it) has that text synced to the sheet's
-    status column (previously always blank — not a Spond event's own
-    status) and is flagged for review, so it doesn't look like an ordinary
-    unplayed fixture next to whatever replacement FA has scheduled.
+    place rather than removing it) has that text synced to a dedicated
+    fa_status column and is flagged for review, so it doesn't look like an
+    ordinary unplayed fixture next to whatever replacement FA has scheduled.
+    fa_status is deliberately separate from the sheet's existing "status"
+    column, which the PNFC repo's scripts read as the Spond event's own
+    lifecycle state (CREATED/FAILED/DELETED/...) — this script provisions
+    fa_status itself (widening the sheet's grid and writing its header) the
+    first time it's needed, since it postdates the sheet's original setup.
 
 Rows created before this fixture_id tracking existed are matched once by
 the old (group, date, kick_off, opponent) key and backfilled with their
@@ -54,7 +58,7 @@ OUTPUT_FIELDS = [
     "description", "rsvp_date", "send_date", "max_players", "auto_accept",
     "responses_admin_only", "comments_disabled", "banner_colour",
     "status", "banner_status", "event_id",
-    "fixture_id", "review_flag", "review_detail",
+    "fixture_id", "review_flag", "review_detail", "fa_status",
 ]
 
 # The Fixtures tab has a header row (1) plus a hint/notes row (2); real data
@@ -165,6 +169,62 @@ def fa_status_flag(fa_status: str) -> tuple[str, str]:
     return fa_status.upper(), f"FA status: {fa_status} — check for Spond update"
 
 
+def ensure_fa_status_column(service):
+    """Make sure the Fixtures tab actually has an fa_status column before
+    anything tries to write to it. fa_status was added to OUTPUT_FIELDS
+    after 03_setup_sheet.py originally provisioned the sheet, so the grid
+    may still be exactly the old width — the Sheets API rejects writes to
+    cells beyond a sheet's current row/column count rather than silently
+    growing it, so this has to run first. Idempotent — no-ops once the
+    header is present."""
+    header_resp = service.spreadsheets().values().get(
+        spreadsheetId=SPREADSHEET_ID, range=f"{SHEET_TAB}!1:1",
+    ).execute()
+    header = header_resp.get("values", [[]])
+    header = header[0] if header else []
+    if "fa_status" in header:
+        return
+
+    meta = service.spreadsheets().get(
+        spreadsheetId=SPREADSHEET_ID,
+        ranges=[SHEET_TAB],
+        fields="sheets(properties(sheetId,gridProperties))",
+    ).execute()
+    sheets = meta.get("sheets", [])
+    if not sheets:
+        raise RuntimeError(f"Sheet tab '{SHEET_TAB}' not found")
+    props = sheets[0]["properties"]
+    sheet_id = props["sheetId"]
+    current_cols = props["gridProperties"]["columnCount"]
+
+    fa_status_col = OUTPUT_FIELDS.index("fa_status") + 1
+    if current_cols < fa_status_col:
+        service.spreadsheets().batchUpdate(
+            spreadsheetId=SPREADSHEET_ID,
+            body={"requests": [{
+                "appendDimension": {
+                    "sheetId": sheet_id,
+                    "dimension": "COLUMNS",
+                    "length": fa_status_col - current_cols,
+                },
+            }]},
+        ).execute()
+
+    col_ref = col_letter(fa_status_col)
+    service.spreadsheets().values().batchUpdate(
+        spreadsheetId=SPREADSHEET_ID,
+        body={
+            "valueInputOption": "RAW",
+            "data": [
+                {"range": f"{SHEET_TAB}!{col_ref}1", "values": [["fa_status"]]},
+                {"range": f"{SHEET_TAB}!{col_ref}2",
+                 "values": [["Leave blank — filled by sync script "
+                             "(FA's own status text, e.g. Postponed)"]]},
+            ],
+        },
+    ).execute()
+
+
 # Amber (Material Design amber 500, #FFC107) used to highlight any row
 # awaiting human review, whatever put it there (CHANGED, CANCELLED?, an FA
 # status flag like POSTPONED, ...).
@@ -255,6 +315,7 @@ def main():
         return
 
     service = get_service()
+    ensure_fa_status_column(service)
     ensure_review_flag_highlighting(service)
     existing_rows = get_existing_rows(service)
     existing_by_fixture_id = {
@@ -293,10 +354,10 @@ def main():
         if matched_via_legacy and fid:
             cell_updates.append((sheet_row, "fixture_id", fid))
 
-        fa_status_new = row.get("status", "").strip()
-        fa_status_old = existing.get("status", "").strip()
+        fa_status_new = row.get("fa_status", "").strip()
+        fa_status_old = existing.get("fa_status", "").strip()
         if fa_status_new != fa_status_old:
-            cell_updates.append((sheet_row, "status", fa_status_new))
+            cell_updates.append((sheet_row, "fa_status", fa_status_new))
 
         if fa_status_new:
             # FA's own status/notes text (e.g. "Postponed") takes priority
@@ -372,7 +433,7 @@ def main():
     # notes) — flag it for review immediately rather than waiting for a
     # later run's diff to notice.
     for row in new_rows:
-        fa_status_new = row.get("status", "").strip()
+        fa_status_new = row.get("fa_status", "").strip()
         if fa_status_new:
             row["review_flag"], row["review_detail"] = fa_status_flag(fa_status_new)
             fa_status_summary.append({"heading": fixture_heading(row), "detail": row["review_detail"]})
