@@ -46,6 +46,7 @@ OUTPUT_FIELDS = [
     "fixture_id",
     "review_flag",
     "review_detail",
+    "fa_status",
 ]
 
 
@@ -162,15 +163,19 @@ def transform_row(row: dict, team_mapping: dict, defaults: dict, comp_overrides:
         "responses_admin_only": defaults["responses_admin_only"],
         "comments_disabled": defaults["comments_disabled"],
         "banner_colour": defaults["banner_colour"],
-        # Carries FA's own "Status / Notes" text (e.g. "Postponed") through
-        # to the sheet's existing (previously always-blank) status column —
-        # not to be confused with a Spond event's own status.
-        "status": row.get("status", "").strip(),
+        "status": "",
         "banner_status": "",
         "event_id": "",
         "fixture_id": row.get("fixture_id", "").strip(),
         "review_flag": "",
         "review_detail": "",
+        # FA's own "Status / Notes" text (e.g. "Postponed") — a dedicated
+        # column, deliberately separate from "status" above, which the
+        # PNFC repo's scripts (04_create_fixtures.py, 05_delete_fixtures.py,
+        # app.py's dashboard) all read as the Spond event lifecycle state
+        # (CREATED/FAILED/DELETED/...). Overloading that field would make
+        # a postponed fixture look like an unrecognised Spond status.
+        "fa_status": row.get("status", "").strip(),
     }
 
 
