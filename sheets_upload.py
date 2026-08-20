@@ -42,15 +42,41 @@ import argparse
 import csv
 import json
 import os
+import random
 import sys
+import time
 from pathlib import Path
 
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 
 SPREADSHEET_ID = "14vuInvGzQnDMnUR2dg-Uk67kio83RBmdZG1_aQBiyno"
 SHEET_TAB = "Fixtures"
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
+
+# Google's own guidance for these APIs is to retry 429/5xx with backoff —
+# they're transient (rate limiting, brief backend unavailability) and
+# unrelated to anything this script sent. Without a retry, one blip on a
+# scheduled run kills the whole sync (seen live: a bare 503 "service
+# currently unavailable" from the very first read in ensure_fa_status_column
+# aborted a run that had nothing else wrong with it).
+RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
+MAX_RETRIES = 5
+
+
+def execute_with_retry(request, max_retries: int = MAX_RETRIES):
+    for attempt in range(max_retries + 1):
+        try:
+            return request.execute()
+        except HttpError as e:
+            status = e.resp.status if e.resp else None
+            if status not in RETRYABLE_STATUS_CODES or attempt == max_retries:
+                raise
+            delay = (2 ** attempt) + random.uniform(0, 1)
+            print(f"  Sheets API returned {status}, retrying in {delay:.1f}s "
+                  f"(attempt {attempt + 1}/{max_retries})...", file=sys.stderr)
+            time.sleep(delay)
 
 OUTPUT_FIELDS = [
     "group_name", "date", "kick_off", "end_time", "meet_time_mins",
@@ -105,10 +131,10 @@ def get_existing_rows(service) -> list[dict]:
     """Fetch existing sheet rows (below the header + hint rows) as dicts,
     each carrying its 1-indexed sheet row number under "_sheet_row"."""
     last_col = col_letter(len(OUTPUT_FIELDS))
-    resp = service.spreadsheets().values().get(
+    resp = execute_with_retry(service.spreadsheets().values().get(
         spreadsheetId=SPREADSHEET_ID,
         range=f"{SHEET_TAB}!A1:{last_col}",
-    ).execute()
+    ))
     values = resp.get("values", [])
     if len(values) < FIRST_DATA_ROW:
         return []
@@ -126,13 +152,13 @@ def get_existing_rows(service) -> list[dict]:
 
 def append_rows(service, rows: list[list]):
     body = {"values": rows}
-    service.spreadsheets().values().append(
+    execute_with_retry(service.spreadsheets().values().append(
         spreadsheetId=SPREADSHEET_ID,
         range=f"{SHEET_TAB}!A1",
         valueInputOption="RAW",
         insertDataOption="INSERT_ROWS",
         body=body,
-    ).execute()
+    ))
 
 
 def batch_write_cells(service, cell_updates: list[tuple]):
@@ -147,10 +173,10 @@ def batch_write_cells(service, cell_updates: list[tuple]):
         }
         for sheet_row, col_name, value in cell_updates
     ]
-    service.spreadsheets().values().batchUpdate(
+    execute_with_retry(service.spreadsheets().values().batchUpdate(
         spreadsheetId=SPREADSHEET_ID,
         body={"valueInputOption": "RAW", "data": data},
-    ).execute()
+    ))
 
 
 def diff_watched_fields(existing: dict, incoming: dict) -> list[str]:
@@ -177,19 +203,19 @@ def ensure_fa_status_column(service):
     cells beyond a sheet's current row/column count rather than silently
     growing it, so this has to run first. Idempotent — no-ops once the
     header is present."""
-    header_resp = service.spreadsheets().values().get(
+    header_resp = execute_with_retry(service.spreadsheets().values().get(
         spreadsheetId=SPREADSHEET_ID, range=f"{SHEET_TAB}!1:1",
-    ).execute()
+    ))
     header = header_resp.get("values", [[]])
     header = header[0] if header else []
     if "fa_status" in header:
         return
 
-    meta = service.spreadsheets().get(
+    meta = execute_with_retry(service.spreadsheets().get(
         spreadsheetId=SPREADSHEET_ID,
         ranges=[SHEET_TAB],
         fields="sheets(properties(sheetId,gridProperties))",
-    ).execute()
+    ))
     sheets = meta.get("sheets", [])
     if not sheets:
         raise RuntimeError(f"Sheet tab '{SHEET_TAB}' not found")
@@ -199,7 +225,7 @@ def ensure_fa_status_column(service):
 
     fa_status_col = OUTPUT_FIELDS.index("fa_status") + 1
     if current_cols < fa_status_col:
-        service.spreadsheets().batchUpdate(
+        execute_with_retry(service.spreadsheets().batchUpdate(
             spreadsheetId=SPREADSHEET_ID,
             body={"requests": [{
                 "appendDimension": {
@@ -208,10 +234,10 @@ def ensure_fa_status_column(service):
                     "length": fa_status_col - current_cols,
                 },
             }]},
-        ).execute()
+        ))
 
     col_ref = col_letter(fa_status_col)
-    service.spreadsheets().values().batchUpdate(
+    execute_with_retry(service.spreadsheets().values().batchUpdate(
         spreadsheetId=SPREADSHEET_ID,
         body={
             "valueInputOption": "RAW",
@@ -222,7 +248,7 @@ def ensure_fa_status_column(service):
                              "(FA's own status text, e.g. Postponed)"]]},
             ],
         },
-    ).execute()
+    ))
 
 
 # Amber (Material Design amber 500, #FFC107) used to highlight any row
@@ -240,11 +266,11 @@ def ensure_review_flag_highlighting(service):
     review_flag_col = col_letter(OUTPUT_FIELDS.index("review_flag") + 1)
     formula = f"=${review_flag_col}{FIRST_DATA_ROW}<>\"\""
 
-    meta = service.spreadsheets().get(
+    meta = execute_with_retry(service.spreadsheets().get(
         spreadsheetId=SPREADSHEET_ID,
         ranges=[SHEET_TAB],
         fields="sheets(properties(sheetId,title),conditionalFormats)",
-    ).execute()
+    ))
     sheets = meta.get("sheets", [])
     if not sheets:
         raise RuntimeError(f"Sheet tab '{SHEET_TAB}' not found")
@@ -278,9 +304,9 @@ def ensure_review_flag_highlighting(service):
             "index": 0,
         }
     }
-    service.spreadsheets().batchUpdate(
+    execute_with_retry(service.spreadsheets().batchUpdate(
         spreadsheetId=SPREADSHEET_ID, body={"requests": [request]}
-    ).execute()
+    ))
 
 
 def fixture_heading(row: dict) -> str:
