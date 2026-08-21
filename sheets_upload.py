@@ -84,7 +84,7 @@ OUTPUT_FIELDS = [
     "description", "rsvp_date", "send_date", "max_players", "auto_accept",
     "responses_admin_only", "comments_disabled", "banner_colour",
     "status", "banner_status", "event_id",
-    "fixture_id", "review_flag", "review_detail", "fa_status",
+    "fixture_id", "review_flag", "review_detail", "fa_status", "confirm_cancel",
 ]
 
 # The Fixtures tab has a header row (1) plus a hint/notes row (2); real data
@@ -386,6 +386,14 @@ def main():
             cell_updates.append((sheet_row, "fa_status", fa_status_new))
 
         if fa_status_new:
+            # A confirm_cancel=TRUE row has already had its Spond event
+            # cancelled by 17_apply_changes.py (in PNFC) — that's a durable
+            # marker, not a one-shot toggle, precisely so a fixture FA still
+            # lists as e.g. "Postponed" on every later scrape doesn't keep
+            # reopening it for review each run.
+            if existing.get("confirm_cancel", "").strip().upper() == "TRUE":
+                continue
+
             # FA's own status/notes text (e.g. "Postponed") takes priority
             # over the watched-field diff below — a postponed fixture keeps
             # its original date/venue on FA's site, so there's usually
