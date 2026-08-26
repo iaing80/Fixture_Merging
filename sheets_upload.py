@@ -96,8 +96,12 @@ FIRST_DATA_ROW = 3
 LEGACY_KEY_FIELDS = ("group_name", "date", "kick_off", "opponent")
 
 # Fields whose change on an already-tracked fixture gets flagged for human
-# review rather than applied automatically.
-WATCHED_FIELDS = ("date", "kick_off", "venue_name", "opponent")
+# review rather than applied automatically. "template" (home/away) is
+# recomputed fresh from FA's data by transform.py's derive_template() on
+# every run, same as the others here — it just wasn't being compared
+# against the sheet's existing value, so a fixture that flipped home/away
+# on FA's site never got its template cell corrected.
+WATCHED_FIELDS = ("date", "kick_off", "venue_name", "opponent", "template")
 
 # Free-text fields compared case-insensitively — FA's site renders venue
 # names in ALL CAPS while the sheet may have them in mixed case (manually
