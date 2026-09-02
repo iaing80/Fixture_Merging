@@ -1,0 +1,46 @@
+name: Notify Discord of New Pitch Bookings
+
+on:
+  # Poll the Pitch Booking Tracker form-response sheet regularly — there's
+  # no push signal from Google Forms into this repo, so a schedule is the
+  # only option (same reasoning as transform.yml's daily safety-net poll).
+  schedule:
+    - cron: "*/15 * * * *"
+  # Allow manual trigger from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+        with:
+          token: ${{ secrets.FIXTURE_MERGING_PAT }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5.5.0
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Check for new pitch bookings
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python notify_pitch_bookings.py --state pitch_booking_state.json
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pitch_booking_state.json
+          if git diff --cached --quiet; then
+            echo "No changes to pitch_booking_state.json"
+          else
+            git commit -m "chore: update pitch_booking_state.json [skip ci]"
+            git push
+          fi
