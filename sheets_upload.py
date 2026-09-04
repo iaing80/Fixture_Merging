@@ -45,6 +45,7 @@ import os
 import random
 import sys
 import time
+from datetime import datetime
 from pathlib import Path
 
 from google.oauth2 import service_account
@@ -54,6 +55,17 @@ from googleapiclient.errors import HttpError
 SPREADSHEET_ID = "14vuInvGzQnDMnUR2dg-Uk67kio83RBmdZG1_aQBiyno"
 SHEET_TAB = "Fixtures"
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
+
+# A durable, append-only record of every watched-field change this script
+# has ever detected (home/away reversals, date/kick-off/venue moves, ...) —
+# separate from review_flag/review_detail on the Fixtures tab, which are
+# cleared once a fixture's data stops differing so they only show the
+# *current* state, not what changed and when.
+CHANGE_LOG_TAB = "Change Log"
+CHANGE_LOG_FIELDS = [
+    "logged_at", "fixture_id", "group_name", "opponent", "date",
+    "field", "old_value", "new_value",
+]
 
 # Google's own guidance for these APIs is to retry 429/5xx with backoff —
 # they're transient (rate limiting, brief backend unavailability) and
@@ -107,6 +119,10 @@ WATCHED_FIELDS = ("date", "kick_off", "venue_name", "opponent", "template")
 # names in ALL CAPS while the sheet may have them in mixed case (manually
 # entered, or from an older pipeline run), which isn't a real change.
 CASE_INSENSITIVE_FIELDS = {"venue_name", "opponent"}
+
+# Friendlier field names for the Change Log tab — "template" is the sheet's
+# internal column name for home/away, which isn't obvious out of context.
+CHANGE_LOG_FIELD_LABELS = {"template": "home_away"}
 
 
 def get_service():
@@ -255,6 +271,60 @@ def ensure_fa_status_column(service):
     ))
 
 
+def ensure_change_log_tab(service):
+    """Make sure the spreadsheet has a Change Log tab with its header row,
+    creating it the first time this runs. Idempotent."""
+    meta = execute_with_retry(service.spreadsheets().get(
+        spreadsheetId=SPREADSHEET_ID,
+        fields="sheets(properties(title))",
+    ))
+    titles = {s["properties"]["title"] for s in meta.get("sheets", [])}
+    if CHANGE_LOG_TAB in titles:
+        return
+
+    execute_with_retry(service.spreadsheets().batchUpdate(
+        spreadsheetId=SPREADSHEET_ID,
+        body={"requests": [{"addSheet": {"properties": {"title": CHANGE_LOG_TAB}}}]},
+    ))
+    execute_with_retry(service.spreadsheets().values().update(
+        spreadsheetId=SPREADSHEET_ID,
+        range=f"{CHANGE_LOG_TAB}!A1",
+        valueInputOption="RAW",
+        body={"values": [CHANGE_LOG_FIELDS]},
+    ))
+
+
+def append_change_log(service, entries: list[dict]):
+    """entries: list of dicts keyed by CHANGE_LOG_FIELDS. Appends one row
+    per entry to the Change Log tab — never edited or cleared afterwards,
+    so it stays a durable record of every change ever detected."""
+    if not entries:
+        return
+    values = [[e.get(col, "") for col in CHANGE_LOG_FIELDS] for e in entries]
+    execute_with_retry(service.spreadsheets().values().append(
+        spreadsheetId=SPREADSHEET_ID,
+        range=f"{CHANGE_LOG_TAB}!A1",
+        valueInputOption="RAW",
+        insertDataOption="INSERT_ROWS",
+        body={"values": values},
+    ))
+
+
+def parse_sheet_date(raw: str):
+    """Parse the sheet's date column (DD/MM/YYYY, per transform.py's
+    normalise_date) into a date object, or None if unparseable/blank —
+    callers treat None as "can't tell, don't assume it's past"."""
+    raw = raw.strip()
+    if not raw:
+        return None
+    for fmt in ("%d/%m/%Y", "%d/%m/%y"):
+        try:
+            return datetime.strptime(raw, fmt).date()
+        except ValueError:
+            continue
+    return None
+
+
 # Amber (Material Design amber 500, #FFC107) used to highlight any row
 # awaiting human review, whatever put it there (CHANGED, CANCELLED?, an FA
 # status flag like POSTPONED, ...).
@@ -347,6 +417,7 @@ def main():
     service = get_service()
     ensure_fa_status_column(service)
     ensure_review_flag_highlighting(service)
+    ensure_change_log_tab(service)
     existing_rows = get_existing_rows(service)
     existing_by_fixture_id = {
         r["fixture_id"].strip(): r for r in existing_rows if r.get("fixture_id", "").strip()
@@ -364,6 +435,8 @@ def main():
     changed_summary = []
     cancelled_summary = []
     fa_status_summary = []
+    change_log_entries = []
+    logged_at = datetime.now().isoformat(timespec="seconds")
 
     for row in input_rows:
         fid = row.get("fixture_id", "").strip()
@@ -419,9 +492,20 @@ def main():
             # data — review_flag/review_detail signal that Spond hasn't
             # caught up yet, not that the sheet itself is stale.
             for field in WATCHED_FIELDS:
+                old_val = existing.get(field, "").strip()
                 new_val = row.get(field, "").strip()
-                if existing.get(field, "").strip() != new_val:
+                if old_val != new_val:
                     cell_updates.append((sheet_row, field, new_val))
+                    change_log_entries.append({
+                        "logged_at": logged_at,
+                        "fixture_id": fid,
+                        "group_name": row.get("group_name", "").strip(),
+                        "opponent": row.get("opponent", "").strip(),
+                        "date": row.get("date", "").strip(),
+                        "field": CHANGE_LOG_FIELD_LABELS.get(field, field),
+                        "old_value": old_val,
+                        "new_value": new_val,
+                    })
                     if field == "venue_name":
                         # venue_address is hand-maintained against the old
                         # venue_name — it no longer describes the new venue,
@@ -446,11 +530,22 @@ def main():
 
     # Possible cancellations: sheet rows with a real Spond event that simply
     # weren't seen at all in today's scrape.
+    today = datetime.now().date()
     cancelled_count = 0
     for r in existing_rows:
         fid = r.get("fixture_id", "").strip()
         if not fid or fid in seen_fixture_ids or not r.get("event_id", "").strip():
             continue
+
+        # A fixture already played typically drops off FA's site entirely
+        # rather than staying listed with a result — that's normal housekeeping
+        # on FA's end, not a cancellation, so a past date is never treated as
+        # "missing from the scrape" grounds for CANCELLED?. An unparseable date
+        # is treated as not-past (fail safe towards flagging, same as before).
+        fixture_date = parse_sheet_date(r.get("date", ""))
+        if fixture_date is not None and fixture_date < today:
+            continue
+
         flag_text = "CANCELLED?"
         if r.get("review_flag", "").strip() != flag_text:
             cell_updates.append((r["_sheet_row"], "review_flag", flag_text))
@@ -465,6 +560,10 @@ def main():
               f"{cancelled_count} possible cancellation(s) flagged, "
               f"{cleared_count} stale flag(s) cleared.", file=sys.stderr)
         batch_write_cells(service, cell_updates)
+
+    if change_log_entries:
+        print(f"Appending {len(change_log_entries)} row(s) to '{CHANGE_LOG_TAB}' tab...", file=sys.stderr)
+        append_change_log(service, change_log_entries)
 
     # A brand-new fixture can arrive already carrying an FA status (e.g. a
     # rearranged fixture picked up for the first time still showing old
