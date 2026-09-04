@@ -1,5 +1,4 @@
 group_name,date,kick_off,end_time,meet_time_mins,template,opponent,venue_name,venue_address,directions_url,description,rsvp_date,send_date,max_players,auto_accept,responses_admin_only,comments_disabled,banner_colour,status,banner_status,event_id,fixture_id,review_flag,review_detail,fa_status
-PNFC U8 Girls,03/09/2026,18:00,19:30,30,away,Deeping Rangers U9 Girls,Outgang Road,,,,,,0,FALSE,FALSE,FALSE,,,,,30218934,,,
 PNFC U10 Boys,05/09/2026,09:30,11:00,30,away,Whittlesey Jnr U10 Black,WHITTLESEY JFC,,,,,,0,FALSE,FALSE,FALSE,,,,,30012044,,,
 PNFC U11 Boys,05/09/2026,10:30,12:00,30,away,Oundle Town U11,OUNDLE TOWN FOOTBALL CLUB,,,,,,0,FALSE,FALSE,FALSE,,,,,30131254,,,
 PNFC U8 Boys,05/09/2026,09:30,11:00,30,away,FC Peterborough U8,MILLFIELD AUTOPARTS STADIUM,,,,,,0,FALSE,FALSE,FALSE,,,,,30129392,,,
