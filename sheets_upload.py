@@ -540,10 +540,13 @@ def main():
         # A fixture already played typically drops off FA's site entirely
         # rather than staying listed with a result — that's normal housekeeping
         # on FA's end, not a cancellation, so a past date is never treated as
-        # "missing from the scrape" grounds for CANCELLED?. An unparseable date
-        # is treated as not-past (fail safe towards flagging, same as before).
+        # "missing from the scrape" grounds for CANCELLED?. A fixture played
+        # earlier today has already dropped off the same way by the time this
+        # scrape runs, so today counts too — not just strictly-past dates. An
+        # unparseable date is treated as not-past (fail safe towards flagging,
+        # same as before).
         fixture_date = parse_sheet_date(r.get("date", ""))
-        if fixture_date is not None and fixture_date < today:
+        if fixture_date is not None and fixture_date <= today:
             continue
 
         flag_text = "CANCELLED?"
