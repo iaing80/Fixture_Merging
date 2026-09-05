@@ -1,9 +1,6 @@
 group_name,date,kick_off,end_time,meet_time_mins,template,opponent,venue_name,venue_address,directions_url,description,rsvp_date,send_date,max_players,auto_accept,responses_admin_only,comments_disabled,banner_colour,status,banner_status,event_id,fixture_id,review_flag,review_detail,fa_status
-PNFC U10 Boys,05/09/2026,09:30,11:00,30,away,Whittlesey Jnr U10 Black,WHITTLESEY JFC,,,,,,0,FALSE,FALSE,FALSE,,,,,30012044,,,
-PNFC U11 Boys,05/09/2026,10:30,12:00,30,away,Oundle Town U11,OUNDLE TOWN FOOTBALL CLUB,,,,,,0,FALSE,FALSE,FALSE,,,,,30131254,,,
 PNFC U8 Boys,05/09/2026,09:30,11:00,30,away,FC Peterborough U8,MILLFIELD AUTOPARTS STADIUM,,,,,,0,FALSE,FALSE,FALSE,,,,,30129392,,,
 PNFC U8 Boys (Grey),05/09/2026,10:00,11:30,30,away,Parkside Athletic U8 Yellow,BUSHFIELD LEISURE CENTRE,,,,,,0,FALSE,FALSE,FALSE,,,,,30129498,,,Postponed
-PNFC U9 Girls,05/09/2026,10:30,12:00,30,home,Ramsey Colts U9 Tigers,WERRINGTON LEISURE CENTRE,,,,,,0,FALSE,FALSE,FALSE,,,,,30218933,,,
 PNFC U13 Boys,06/09/2026,10:00,11:30,30,away,ICA Sports Youth U13 Boys,SOUTH BRETTON PLAYING FIELD,,,,,,0,FALSE,FALSE,FALSE,,,,,30057998,,,
 PNFC U10 Boys,12/09/2026,12:30,14:00,30,away,Hampton Utd U10 Lions,Beaumont Way,,,,,,0,FALSE,FALSE,FALSE,,,,,30026447,,,
 PNFC U11 Boys,12/09/2026,09:30,11:00,30,home,Holbeach Utd Youth U11 Yellow,WERRINGTON LEISURE CENTRE,,,,,,0,FALSE,FALSE,FALSE,,,,,30131279,,,Postponed
