@@ -4,8 +4,9 @@ Posts a Discord message when a new row appears in the "Tracker" tab of the
 Pitch Booking Tracker Google Sheet (a Google Form response sheet —
 https://docs.google.com/spreadsheets/d/1fZhm0pl1aqVOgXp9EeL4mlgFXjfIfEmlOGEHtyrEsH8),
 or when an existing booking's Booking Status (column H) changes — e.g.
-Submitted -> Confirmed -> Played. Nothing else changing on a row (Notes,
-Confirmed with Vivacity, Invoice Reference, ...) triggers a notification.
+Submitted -> Confirmed -> Played — or when its Confirmed with Vivacity
+column flips to "Yes". Nothing else changing on a row (Notes, Invoice
+Reference, ...) triggers a notification.
 
 A booking is identified by IDENTITY_FIELDS — Timestamp + Team + Date +
 Start Time — which is what a form submission actually is and doesn't
@@ -62,6 +63,7 @@ START_COL = "Start Time"
 PITCH_COL = "Pitch Type Required"
 STATUS_COL = "Booking Status (Default: Submitted)"
 NOTES_COL = "Any additional Notes or requirements for this booking?"
+VIVACITY_COL = "Confirmed with Vivacity"
 
 # What identifies "the same booking" across runs — a form submission's
 # Timestamp plus what it was actually booking. None of these are expected
@@ -155,7 +157,8 @@ def booking_header(row: dict) -> str:
     return f"**{team}** — {date} at {start} — {pitch}"
 
 
-def build_message(new_rows: list[dict], status_changes: list[tuple[dict, str, str]]) -> str:
+def build_message(new_rows: list[dict], status_changes: list[tuple[dict, str, str]],
+                   vivacity_confirmed: list[dict]) -> str:
     lines = []
     if new_rows:
         lines.append(f"**⚽ {len(new_rows)} new pitch booking(s) submitted**")
@@ -176,6 +179,15 @@ def build_message(new_rows: list[dict], status_changes: list[tuple[dict, str, st
             lines.append(f"• {booking_header(row)} — {old_status or '(blank)'} → **{new_status or '(blank)'}**")
         if len(status_changes) > MAX_LIST_ITEMS:
             lines.append(f"…and {len(status_changes) - MAX_LIST_ITEMS} more")
+
+    if vivacity_confirmed:
+        if lines:
+            lines.append("")
+        lines.append(f"**✅ {len(vivacity_confirmed)} pitch booking(s) confirmed with Vivacity**")
+        for row in vivacity_confirmed[:MAX_LIST_ITEMS]:
+            lines.append(f"• {booking_header(row)}")
+        if len(vivacity_confirmed) > MAX_LIST_ITEMS:
+            lines.append(f"…and {len(vivacity_confirmed) - MAX_LIST_ITEMS} more")
 
     return "\n".join(lines)
 
@@ -218,26 +230,33 @@ def main():
 
     new_rows = []
     status_changes = []
+    vivacity_confirmed = []
     for row in rows:
         key = booking_key(row)
         previous = bookings.get(key)
         new_status = row.get(STATUS_COL, "").strip()
+        new_vivacity = row.get(VIVACITY_COL, "").strip()
         if previous is None:
             bookings[key] = row
             if not silent_baseline:
                 new_rows.append(row)
             continue
         old_status = previous.get(STATUS_COL, "").strip()
-        if old_status != new_status:
+        old_vivacity = previous.get(VIVACITY_COL, "").strip()
+        status_changed = old_status != new_status
+        # Only the transition INTO "Yes" is notable — not every edit to
+        # this column (e.g. it going blank, or staying "Yes").
+        just_confirmed = old_vivacity.lower() != "yes" and new_vivacity.lower() == "yes"
+        if status_changed or just_confirmed or row != previous:
+            # Keep the snapshot current on ANY change (including one that
+            # isn't itself worth a Discord post, e.g. Notes/Invoice edits)
+            # so the next run's diff is always against the right prior state.
             bookings[key] = row
-            if not silent_baseline:
+        if not silent_baseline:
+            if status_changed:
                 status_changes.append((row, old_status, new_status))
-        elif row != previous:
-            # Some other field changed (Notes, Vivacity, Invoice, ...) —
-            # keep the snapshot current so a LATER status change diffs
-            # against the right prior state, but that's not itself worth
-            # a Discord post.
-            bookings[key] = row
+            if just_confirmed:
+                vivacity_confirmed.append(row)
 
     state["bookings"] = bookings
     save_state(args.state, state)
@@ -246,20 +265,21 @@ def main():
         print(f"Baselined {len(rows)} existing row(s), no notification sent.", file=sys.stderr)
         return
 
-    if not new_rows and not status_changes:
-        print("No new bookings or status changes.", file=sys.stderr)
+    if not new_rows and not status_changes and not vivacity_confirmed:
+        print("No new bookings, status changes, or Vivacity confirmations.", file=sys.stderr)
         return
 
     webhook_url = os.environ.get("DISCORD_WEBHOOK_URL", "").strip()
     if not webhook_url:
         print(f"DISCORD_WEBHOOK_URL not set — skipping notification for "
-              f"{len(new_rows)} new / {len(status_changes)} status change(s).", file=sys.stderr)
+              f"{len(new_rows)} new / {len(status_changes)} status change(s) / "
+              f"{len(vivacity_confirmed)} Vivacity confirmation(s).", file=sys.stderr)
         return
 
-    message = build_message(new_rows, status_changes)
+    message = build_message(new_rows, status_changes, vivacity_confirmed)
     post_to_discord(webhook_url, message)
-    print(f"Posted notification for {len(new_rows)} new / {len(status_changes)} status change(s) to Discord.",
-          file=sys.stderr)
+    print(f"Posted notification for {len(new_rows)} new / {len(status_changes)} status change(s) / "
+          f"{len(vivacity_confirmed)} Vivacity confirmation(s) to Discord.", file=sys.stderr)
 
 
 if __name__ == "__main__":
