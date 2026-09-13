@@ -1,13 +1,6 @@
 group_name,date,kick_off,end_time,meet_time_mins,template,opponent,venue_name,venue_address,directions_url,description,rsvp_date,send_date,max_players,auto_accept,responses_admin_only,comments_disabled,banner_colour,status,banner_status,event_id,fixture_id,review_flag,review_detail,fa_status
 PNFC U8 Boys (Grey),05/09/2026,10:00,11:30,30,away,Parkside Athletic U8 Yellow,BUSHFIELD LEISURE CENTRE,,,,,,0,FALSE,FALSE,FALSE,,,,,30129498,,,Postponed
-PNFC U10 Boys,12/09/2026,12:30,14:00,30,away,Hampton Utd U10 Lions,Beaumont Way,,,,,,0,FALSE,FALSE,FALSE,,,,,30026447,,,
 PNFC U11 Boys,12/09/2026,09:30,11:00,30,home,Holbeach Utd Youth U11 Yellow,WERRINGTON LEISURE CENTRE,,,,,,0,FALSE,FALSE,FALSE,,,,,30131279,,,Postponed
-PNFC U11 Boys,12/09/2026,09:30,11:00,30,home,Hampton Rangers U11 Black,WERRINGTON LEISURE CENTRE,,,,,,0,FALSE,FALSE,FALSE,,,,,30427103,,,
-PNFC U8 Boys,12/09/2026,10:30,12:00,30,away,Ketton Sports U8 Black,KETTON SPORTS & COMMUNITY CENTRE,,,,,,0,FALSE,FALSE,FALSE,,,,,30129597,,,
-PNFC U8 Girls,12/09/2026,09:30,11:00,30,away,Ramsey Colts U9 Tigers,TOM JONES MEMORIAL FIELDS,,,,,,0,FALSE,FALSE,FALSE,,,,,30218935,,,
-PNFC U8 Boys (Grey),12/09/2026,09:30,11:00,30,away,Yaxley FC U8 Blacks,APG PARK,,,,,,0,FALSE,FALSE,FALSE,,,,,30129806,,,
-PNFC U9 Boys,12/09/2026,10:30,12:00,30,away,One Touch Football U9 White,RYHALL MEADOW PLAYING FIELDS,,,,,,0,FALSE,FALSE,FALSE,,,,,30015149,,,
-PNFC U9 Girls,12/09/2026,10:30,12:00,30,away,Ramsey Colts U9 Panthers,TOM JONES MEMORIAL FIELDS,,,,,,0,FALSE,FALSE,FALSE,,,,,30218941,,,
 PNFC U13 Boys,13/09/2026,12:00,13:30,30,away,Yaxley FC U13,BUSHFIELD LEISURE CENTRE,,,,,,0,FALSE,FALSE,FALSE,,,,,30058004,,,
 PNFC U10 Boys,19/09/2026,10:30,12:00,30,away,Peterborough Ravens U10 Gold,A2B ARENA,,,,,,0,FALSE,FALSE,FALSE,,,,,30027274,,,
 PNFC U11 Boys,19/09/2026,09:30,11:00,30,home,Deeping Rangers U11 Clarets,WERRINGTON LEISURE CENTRE,,,,,,0,FALSE,FALSE,FALSE,,,,,30244010,,,Postponed
