@@ -190,9 +190,9 @@
       "Start Time": "18:00:00",
       "End Time": "19:00:00",
       "Pitch Type Required": "Large Mini",
-      "Booking Status (Default: Submitted)": "Submitted",
+      "Booking Status (Default: Submitted)": "Booked",
       "Any additional Notes or requirements for this booking?": "vs Boston U11 Boys",
-      "Confirmed with Vivacity": "",
+      "Confirmed with Vivacity": "Yes",
       "Invoice Reference": ""
     }
   }
