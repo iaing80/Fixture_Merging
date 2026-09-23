@@ -43,11 +43,14 @@ import csv
 import json
 import os
 import random
+import ssl
 import sys
 import time
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import urlparse
 
+import httplib2
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -76,6 +79,23 @@ CHANGE_LOG_FIELDS = [
 RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
 MAX_RETRIES = 5
 
+# Network-level failures (no HTTP response at all) — seen live: a socket
+# read TimeoutError on the first values().get in ensure_fa_status_column.
+# These are only retried for idempotent requests: if a POST like
+# values().append timed out after Google applied it, blindly re-sending it
+# would duplicate rows, so those still fail loudly instead.
+TRANSPORT_ERRORS = (TimeoutError, ConnectionError, ssl.SSLError,
+                    httplib2.HttpLib2Error)
+
+
+def _is_idempotent(request) -> bool:
+    method = getattr(request, "method", "GET")
+    if method in ("GET", "PUT"):
+        return True
+    # values:batchUpdate overwrites fixed ranges with fixed values, so
+    # re-sending it is harmless.
+    return urlparse(getattr(request, "uri", "")).path.endswith("/values:batchUpdate")
+
 
 def execute_with_retry(request, max_retries: int = MAX_RETRIES):
     for attempt in range(max_retries + 1):
@@ -85,10 +105,15 @@ def execute_with_retry(request, max_retries: int = MAX_RETRIES):
             status = e.resp.status if e.resp else None
             if status not in RETRYABLE_STATUS_CODES or attempt == max_retries:
                 raise
-            delay = (2 ** attempt) + random.uniform(0, 1)
-            print(f"  Sheets API returned {status}, retrying in {delay:.1f}s "
-                  f"(attempt {attempt + 1}/{max_retries})...", file=sys.stderr)
-            time.sleep(delay)
+            reason = f"returned {status}"
+        except TRANSPORT_ERRORS as e:
+            if not _is_idempotent(request) or attempt == max_retries:
+                raise
+            reason = f"request failed ({type(e).__name__}: {e})"
+        delay = (2 ** attempt) + random.uniform(0, 1)
+        print(f"  Sheets API {reason}, retrying in {delay:.1f}s "
+              f"(attempt {attempt + 1}/{max_retries})...", file=sys.stderr)
+        time.sleep(delay)
 
 OUTPUT_FIELDS = [
     "group_name", "date", "kick_off", "end_time", "meet_time_mins",
