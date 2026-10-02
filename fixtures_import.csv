@@ -1,5 +1,4 @@
 group_name,date,kick_off,end_time,meet_time_mins,template,opponent,venue_name,venue_address,directions_url,description,rsvp_date,send_date,max_players,auto_accept,responses_admin_only,comments_disabled,banner_colour,status,banner_status,event_id,fixture_id,review_flag,review_detail,fa_status
-PNFC U11 Boys,19/09/2026,09:30,11:00,30,home,Deeping Rangers U11 Clarets,WERRINGTON LEISURE CENTRE,,,,,,0,FALSE,FALSE,FALSE,,,,,30244010,,,Postponed
 PNFC U10 Boys,03/10/2026,11:30,13:00,30,away,Peterborough Lions U10 Black,BRETTON PARK,,,,,,0,FALSE,FALSE,FALSE,,,,,30029680,,,
 PNFC U11 Boys,03/10/2026,09:30,11:00,30,tournament,Wisbech St Mary U11 Purple,WERRINGTON LEISURE CENTRE,,,,,,0,FALSE,FALSE,FALSE,,,,,30157152,,,
 PNFC U8 Boys,03/10/2026,09:30,11:00,30,away,Thurlby Tigers U8 Black,Bourne Westfield Primary School,,,,,,0,FALSE,FALSE,FALSE,,,,,30130515,,,
