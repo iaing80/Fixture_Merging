@@ -1,5 +1,4 @@
 group_name,date,kick_off,end_time,meet_time_mins,template,opponent,venue_name,venue_address,directions_url,description,rsvp_date,send_date,max_players,auto_accept,responses_admin_only,comments_disabled,banner_colour,status,banner_status,event_id,fixture_id,review_flag,review_detail,fa_status
-PNFC U13 Boys,04/10/2026,14:00,15:30,30,away,JFC Boston U13,HAVEN HIGH ACADEMY (MARIAN CAMPUS),,,,,,0,FALSE,FALSE,FALSE,,,,,30058024,,,
 PNFC U10 Boys,10/10/2026,09:30,11:00,30,away,Ketton Sports U10 Black,KETTON SPORTS & COMMUNITY CENTRE,,,,,,0,FALSE,FALSE,FALSE,,,,,30030575,,,
 PNFC U11 Boys,10/10/2026,09:30,11:00,30,away,Deeping Utd U11 Blue,DEEPINGS RUGBY UNION FC,,,,,,0,FALSE,FALSE,FALSE,,,,,30131945,,,
 PNFC U8 Boys,10/10/2026,09:30,11:00,30,home,YDP U8,WERRINGTON LEISURE CENTRE,,,,,,0,FALSE,FALSE,FALSE,,,,,30131207,,,
