@@ -1,5 +1,4 @@
 group_name,date,kick_off,end_time,meet_time_mins,template,opponent,venue_name,venue_address,directions_url,description,rsvp_date,send_date,max_players,auto_accept,responses_admin_only,comments_disabled,banner_colour,status,banner_status,event_id,fixture_id,review_flag,review_detail,fa_status
-PNFC U13 Boys,11/10/2026,14:00,15:30,30,away,Holbeach Utd Youth U13 Black,HOLBEACH UNITED COMMUNITY SPORTS ACADEMY,,,,,,0,FALSE,FALSE,FALSE,,,,,30058041,,,
 PNFC U11 Boys,17/10/2026,10:30,12:00,30,away,Orton Rangers U11,NENE PARK ACADEMY,,,,,,0,FALSE,FALSE,FALSE,,,,,30131959,,,
 PNFC U8 Boys,17/10/2026,09:30,11:00,30,away,Boston Utd Comm. U8 Amber,BOSTON UNITED FC (JAKEMANS COMMUNITY STADIUM),,,,,,0,FALSE,FALSE,FALSE,,,,,30131305,,,
 PNFC U8 Girls,17/10/2026,11:30,13:00,30,home,Girls Utd U9,WERRINGTON LEISURE CENTRE,,,,,,0,FALSE,FALSE,FALSE,,,,,30218970,,,
