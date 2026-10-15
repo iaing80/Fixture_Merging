@@ -320,8 +320,8 @@
       "Start Time": "10:00:00",
       "End Time": "11:30:00",
       "Pitch Type Required": "9v9 Pitch",
-      "Booking Status (Default: Submitted)": "Booked",
-      "Any additional Notes or requirements for this booking?": "vs Long Sutton Athletic U13",
+      "Booking Status (Default: Submitted)": "Cancelled",
+      "Any additional Notes or requirements for this booking?": "Please cancel, the game hase been postponed",
       "Confirmed with Vivacity": "Yes",
       "Invoice Reference": ""
     },
@@ -686,6 +686,19 @@
       "Pitch Type Required": "Small Mini",
       "Booking Status (Default: Submitted)": "Booked",
       "Any additional Notes or requirements for this booking?": "vs Glinton & Northborough U9 Girls",
+      "Confirmed with Vivacity": "",
+      "Invoice Reference": ""
+    },
+    "4a03bb987ddd7a296aa78bfb2be80d90091619aaebb61bf9439641842c3007bc": {
+      "Timestamp": "15/10/2026 13:05:00",
+      "Email address": "iaing80@gmail.com",
+      "Team/Group Making the Booking": "U10 Boys",
+      "Date of Requested Booking": "31/10/2026",
+      "Start Time": "10:30:00",
+      "End Time": "11:30:00",
+      "Pitch Type Required": "Large Mini",
+      "Booking Status (Default: Submitted)": "Submitted",
+      "Any additional Notes or requirements for this booking?": "CUP vs YDP U10 Blue",
       "Confirmed with Vivacity": "",
       "Invoice Reference": ""
     }
