@@ -567,9 +567,9 @@
       "Start Time": "09:30:00",
       "End Time": "10:30:00",
       "Pitch Type Required": "Small Mini",
-      "Booking Status (Default: Submitted)": "Submitted",
+      "Booking Status (Default: Submitted)": "Booked",
       "Any additional Notes or requirements for this booking?": "vs Boston Utd Comm. U9 Black",
-      "Confirmed with Vivacity": "",
+      "Confirmed with Vivacity": "Yes",
       "Invoice Reference": ""
     },
     "6832df4526568f832888853a49f6ff583ef2f2616bf5e27cb59c0c9df969631e": {
@@ -697,9 +697,9 @@
       "Start Time": "10:30:00",
       "End Time": "11:30:00",
       "Pitch Type Required": "Large Mini",
-      "Booking Status (Default: Submitted)": "Submitted",
+      "Booking Status (Default: Submitted)": "Booked",
       "Any additional Notes or requirements for this booking?": "CUP vs YDP U10 Blue",
-      "Confirmed with Vivacity": "",
+      "Confirmed with Vivacity": "Yes",
       "Invoice Reference": ""
     },
     "828f97e49109ce8ee352e7fac97d7ca856e4424cc569ffb2e1ad46c1795f662e": {
@@ -749,9 +749,9 @@
       "Start Time": "12:30:00",
       "End Time": "13:30:00",
       "Pitch Type Required": "Small Mini",
-      "Booking Status (Default: Submitted)": "Submitted",
+      "Booking Status (Default: Submitted)": "Booked",
       "Any additional Notes or requirements for this booking?": "vs Cottesmore AFC U8",
-      "Confirmed with Vivacity": "",
+      "Confirmed with Vivacity": "Yes",
       "Invoice Reference": ""
     },
     "f010dfe8b428cef3b483a0f0cb45d49ccee0c7f2324e276cd45662d3243f97a8": {
@@ -762,9 +762,9 @@
       "Start Time": "10:30:00",
       "End Time": "11:30:00",
       "Pitch Type Required": "Small Mini",
-      "Booking Status (Default: Submitted)": "Submitted",
+      "Booking Status (Default: Submitted)": "Booked",
       "Any additional Notes or requirements for this booking?": "vs Thurlby Tigers U9 Orange",
-      "Confirmed with Vivacity": "",
+      "Confirmed with Vivacity": "Yes",
       "Invoice Reference": ""
     },
     "406625dd77be698869a1d2bae0a0768fa9dadc9d0bf6cef140d889f05592e1f7": {
@@ -775,7 +775,7 @@
       "Start Time": "12:30:00",
       "End Time": "13:30:00",
       "Pitch Type Required": "Small Mini",
-      "Booking Status (Default: Submitted)": "Submitted",
+      "Booking Status (Default: Submitted)": "Booked",
       "Any additional Notes or requirements for this booking?": "vs Cottesmore AFC U8",
       "Confirmed with Vivacity": "Yes",
       "Invoice Reference": ""
