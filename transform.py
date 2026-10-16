@@ -32,6 +32,8 @@ MATCH_LENGTH_BY_AGE = [
 ]
 # Groups with no "U<age>" in the name (adult/open-age) play the full 90.
 MATCH_DURATION_MINS = 90
+# Added to every match for half-time and added-on time.
+MATCH_BUFFER_MINS = 10
 
 OUTPUT_FIELDS = [
     "group_name",
@@ -95,14 +97,13 @@ def normalise_time(raw: str) -> str:
 
 
 def match_length_for_group(group_name: str) -> int:
-    """'PNFC U8 Boys (Grey)' -> 40 — minutes per MATCH_LENGTH_BY_AGE."""
+    """'PNFC U8 Boys (Grey)' -> 50 — MATCH_LENGTH_BY_AGE plus MATCH_BUFFER_MINS."""
+    mins = MATCH_DURATION_MINS
     m = re.search(r"\bu\s?(\d{1,2})\b", group_name or "", re.IGNORECASE)
     if m:
         age = int(m.group(1))
-        for lo, hi, mins in MATCH_LENGTH_BY_AGE:
-            if lo <= age <= hi:
-                return mins
-    return MATCH_DURATION_MINS
+        mins = next((n for lo, hi, n in MATCH_LENGTH_BY_AGE if lo <= age <= hi), MATCH_DURATION_MINS)
+    return mins + MATCH_BUFFER_MINS
 
 
 def compute_end_time(kick_off: str, duration_mins: int = MATCH_DURATION_MINS) -> str:
