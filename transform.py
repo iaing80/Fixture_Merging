@@ -11,6 +11,7 @@ If --input is omitted the script fetches the CSV from source_csv_url in config.j
 import argparse
 import csv
 import json
+import re
 import sys
 import urllib.request
 from datetime import datetime, timedelta
@@ -19,6 +20,17 @@ from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).parent
 
+# Match length (minutes) by age group: (min age, max age, minutes), first
+# match wins. PNFC/match_length.py keeps an identical copy — keep in step.
+MATCH_LENGTH_BY_AGE = [
+    (7, 9, 40),
+    (10, 11, 50),
+    (12, 13, 60),
+    (14, 15, 70),
+    (16, 16, 80),
+    (17, 99, 90),
+]
+# Groups with no "U<age>" in the name (adult/open-age) play the full 90.
 MATCH_DURATION_MINS = 90
 
 OUTPUT_FIELDS = [
@@ -80,6 +92,17 @@ def normalise_time(raw: str) -> str:
         except ValueError:
             continue
     return raw
+
+
+def match_length_for_group(group_name: str) -> int:
+    """'PNFC U8 Boys (Grey)' -> 40 — minutes per MATCH_LENGTH_BY_AGE."""
+    m = re.search(r"\bu\s?(\d{1,2})\b", group_name or "", re.IGNORECASE)
+    if m:
+        age = int(m.group(1))
+        for lo, hi, mins in MATCH_LENGTH_BY_AGE:
+            if lo <= age <= hi:
+                return mins
+    return MATCH_DURATION_MINS
 
 
 def compute_end_time(kick_off: str, duration_mins: int = MATCH_DURATION_MINS) -> str:
@@ -148,7 +171,7 @@ def transform_row(row: dict, team_mapping: dict, defaults: dict, comp_overrides:
         "group_name": group_name,
         "date": normalise_date(row.get("date", "")),
         "kick_off": kick_off,
-        "end_time": compute_end_time(kick_off) or defaults["end_time"],
+        "end_time": compute_end_time(kick_off, match_length_for_group(group_name)) or defaults["end_time"],
         "meet_time_mins": defaults["meet_time_mins"],
         "template": template,
         "opponent": row.get("opponent", "").strip(),

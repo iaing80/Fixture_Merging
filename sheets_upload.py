@@ -537,6 +537,13 @@ def main():
                         # so blank it rather than leave a stale address paired
                         # with the new name.
                         cell_updates.append((sheet_row, "venue_address", ""))
+                    if field == "kick_off":
+                        # end_time is kick_off + the age group's match length
+                        # (transform.py) — move it with the kick-off so
+                        # 17_apply_changes.py (in PNFC) sends a matching end.
+                        new_end = row.get("end_time", "").strip()
+                        if new_end and new_end != existing.get("end_time", "").strip():
+                            cell_updates.append((sheet_row, "end_time", new_end))
             already_flagged = (existing.get("review_flag", "").strip() == "CHANGED"
                                 and existing.get("review_detail", "").strip() == detail_text)
             if not already_flagged:
