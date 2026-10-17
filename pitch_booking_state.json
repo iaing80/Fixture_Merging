@@ -333,7 +333,7 @@
       "Start Time": "10:30:00",
       "End Time": "11:30:00",
       "Pitch Type Required": "Small Mini",
-      "Booking Status (Default: Submitted)": "Booked",
+      "Booking Status (Default: Submitted)": "Played",
       "Any additional Notes or requirements for this booking?": "vs YDP U9 Girls",
       "Confirmed with Vivacity": "Yes",
       "Invoice Reference": ""
@@ -346,7 +346,7 @@
       "Start Time": "11:30:00",
       "End Time": "12:30:00",
       "Pitch Type Required": "Small Mini",
-      "Booking Status (Default: Submitted)": "Booked",
+      "Booking Status (Default: Submitted)": "Played",
       "Any additional Notes or requirements for this booking?": "vs Girls Utd U9",
       "Confirmed with Vivacity": "Yes",
       "Invoice Reference": ""
