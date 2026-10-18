@@ -625,9 +625,10 @@ def main():
 
 def write_notify_summary(path, new_summary, changed_summary, cancelled_summary, fa_status_summary):
     """Write a JSON summary of this run's new/changed/cancelled/FA-status fixtures
-    for a downstream notification step (e.g. a Discord webhook in the workflow)
-    to read — kept separate from the sheet writes above so notification delivery
-    can fail or be skipped without affecting the sheet itself."""
+    for a downstream step to read (the transform workflow stamps it with the run
+    id and commits it for the PNFC app to poll) — kept separate from the sheet
+    writes above so notification delivery can fail or be skipped without
+    affecting the sheet itself."""
     summary = {
         "new_fixtures": new_summary,
         "changed_fixtures": changed_summary,
