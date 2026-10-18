@@ -44,50 +44,35 @@ jobs:
           GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
         run: python sheets_upload.py --input fixtures_import.csv --notify-summary notify_summary.json
 
-      - name: Notify Discord of new/changed/cancelled fixtures
-        # No if-gate needed: notify_discord.py already no-ops (exit 0) when
-        # DISCORD_WEBHOOK_URL is unset, and the `secrets` context can't be
-        # referenced directly in a step's `if:` condition anyway.
-        #
-        # --quiet-if-empty on the schedule-triggered (safety-net) run only:
-        # the repository_dispatch-triggered run already posts its own
-        # heartbeat/summary for the day, so the safety net shouldn't repeat
-        # "nothing changed" ~30-45 min later — it should only speak up if it
-        # finds something the dispatch run didn't already report (i.e. the
-        # dispatch silently failed to fire that day).
+      - name: Stamp notify summary with run details
+        # The PNFC app polls notify_summary.json from this repo (and the
+        # commit history of it) and turns each new run_id with any content
+        # into an in-app notification. An empty summary creates nothing, so
+        # the safety-net run never repeats the dispatch run's changes.
         env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          RUN_ID: ${{ github.run_id }}
+          EVENT: ${{ github.event_name }}
         run: |
-          ARGS="--summary notify_summary.json"
-          if [ "${{ github.event_name }}" = "schedule" ]; then
-            ARGS="$ARGS --quiet-if-empty"
-          fi
-          python notify_discord.py $ARGS
+          python - <<'PY'
+          import json, os
+          from datetime import datetime, timezone
+          with open("notify_summary.json", encoding="utf-8") as f:
+              summary = json.load(f)
+          summary["run_id"] = os.environ["RUN_ID"]
+          summary["run_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+          summary["event"] = os.environ["EVENT"]
+          with open("notify_summary.json", "w", encoding="utf-8") as f:
+              json.dump(summary, f, indent=2)
+          PY
 
       - name: Commit and push if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add fixtures_import.csv
+          git add fixtures_import.csv notify_summary.json
           if git diff --cached --quiet; then
-            echo "No changes to fixtures_import.csv"
+            echo "No changes to fixtures_import.csv or notify_summary.json"
           else
-            git commit -m "chore: update fixtures_import.csv [skip ci]"
+            git commit -m "chore: update fixtures_import.csv and notify_summary.json [skip ci]"
             git push
-          fi
-
-      - name: Notify Discord on failure
-        # Runs even if an earlier step failed, so a broken run is never
-        # silent — same DISCORD_WEBHOOK_URL secret as the success-path
-        # notify step above. Plain curl rather than notify_discord.py so it
-        # doesn't depend on any earlier step (Python setup, deps, etc.)
-        # having succeeded.
-        if: failure()
-        env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: |
-          if [ -n "$DISCORD_WEBHOOK_URL" ]; then
-            curl -sS -X POST -A "DiscordBot (https://github.com/iaing80/Fixture_Merging, 1.0)" -H "Content-Type: application/json" \
-              -d "{\"content\": \"❌ **Fixture sync run failed** — <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}>\"}" \
-              "$DISCORD_WEBHOOK_URL"
           fi
