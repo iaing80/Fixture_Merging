@@ -1,9 +1,19 @@
 {
   "new_fixtures": [],
-  "changed_fixtures": [],
+  "changed_fixtures": [
+    {
+      "heading": "PNFC U10 Boys vs YDP U10 Blue (07/11/2026 10:30)",
+      "detail": "date: '31/10/2026' \u2192 '07/11/2026'"
+    }
+  ],
   "cancelled_fixtures": [],
-  "fa_status_fixtures": [],
-  "run_id": "39418313164",
-  "run_at": "2026-10-20T11:54:39Z",
-  "event": "schedule"
+  "fa_status_fixtures": [
+    {
+      "heading": "PNFC U9 Girls vs Ramsey Colts U9 Panther (31/10/2026 10:30)",
+      "detail": "FA status: Postponed \u2014 check for Spond update"
+    }
+  ],
+  "run_id": "39428252323",
+  "run_at": "2026-10-20T13:11:24Z",
+  "event": "repository_dispatch"
 }
