@@ -1,9 +1,44 @@
 {
-  "new_fixtures": [],
-  "changed_fixtures": [],
+  "new_fixtures": [
+    {
+      "heading": "PNFC U13 Boys vs Parkside Athletic U13 Yellow (10/01/2027 10:00)"
+    },
+    {
+      "heading": "PNFC U13 Boys vs Long Sutton Athletic U13 (17/01/2027 10:00)"
+    },
+    {
+      "heading": "PNFC U13 Boys vs Park Farm Pumas U13 Black (24/01/2027 10:00)"
+    },
+    {
+      "heading": "PNFC U13 Boys vs Long Sutton Athletic U13 (07/02/2027 10:00)"
+    },
+    {
+      "heading": "PNFC U13 Boys vs Colsterworth Colts JFC U13 (14/02/2027 12:30)"
+    },
+    {
+      "heading": "PNFC U13 Boys vs Park Farm Pumas U13 Black (21/02/2027 10:00)"
+    },
+    {
+      "heading": "PNFC U13 Boys vs Parkside Athletic U13 Yellow (28/02/2027 12:00)"
+    },
+    {
+      "heading": "PNFC U13 Boys vs Colsterworth Colts JFC U13 (18/04/2027 10:00)"
+    }
+  ],
+  "changed_fixtures": [
+    {
+      "heading": "PNFC U13 Boys vs Stamford AFC Young Daniels U13 White (31/01/2027 10:00)",
+      "detail": "date: '18/10/2026' \u2192 '31/01/2027'"
+    }
+  ],
   "cancelled_fixtures": [],
-  "fa_status_fixtures": [],
-  "run_id": "39640005042",
-  "run_at": "2026-10-21T17:01:25Z",
+  "fa_status_fixtures": [
+    {
+      "heading": "PNFC U10 Boys vs Deeping Utd U10 Blue (07/11/2026 10:30)",
+      "detail": "FA status: Postponed \u2014 check for Spond update"
+    }
+  ],
+  "run_id": "39653756237",
+  "run_at": "2026-10-21T18:33:28Z",
   "event": "repository_dispatch"
 }
