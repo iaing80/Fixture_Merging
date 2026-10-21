@@ -1,13 +1,9 @@
 {
-  "new_fixtures": [
-    {
-      "heading": "PNFC U10 Boys vs Deeping Utd U10 Blue (07/11/2026 10:30)"
-    }
-  ],
+  "new_fixtures": [],
   "changed_fixtures": [],
   "cancelled_fixtures": [],
   "fa_status_fixtures": [],
-  "run_id": "39434864133",
-  "run_at": "2026-10-20T13:57:16Z",
+  "run_id": "39552887048",
+  "run_at": "2026-10-21T06:01:32Z",
   "event": "repository_dispatch"
 }

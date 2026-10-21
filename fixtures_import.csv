@@ -1,5 +1,4 @@
 group_name,date,kick_off,end_time,meet_time_mins,template,opponent,venue_name,venue_address,directions_url,description,rsvp_date,send_date,max_players,auto_accept,responses_admin_only,comments_disabled,banner_colour,status,banner_status,event_id,fixture_id,review_flag,review_detail,fa_status
-PNFC U8 Boys,17/10/2026,09:30,10:20,30,away,Boston Utd Comm. U8 Amber,BOSTON UNITED FC (JAKEMANS COMMUNITY STADIUM),,,,,,0,FALSE,FALSE,FALSE,,,,,30131305,,,
 PNFC U11 Boys,31/10/2026,09:30,10:30,30,away,Whittlesey Jnr U11 Blue,WHITTLESEY JFC,,,,,,0,FALSE,FALSE,FALSE,,,,,30131928,,,
 PNFC U8 Boys,31/10/2026,09:30,10:20,30,home,Peterborough Lions U8 Black,WERRINGTON LEISURE CENTRE,,,,,,0,FALSE,FALSE,FALSE,,,,,31025939,,,
 PNFC U8 Girls,31/10/2026,09:30,10:20,30,away,YDP U9 Girls,ST JOHN FISHER CATHOLIC HIGH SCHOOL (PETERBOROUGH),,,,,,0,FALSE,FALSE,FALSE,,,,,31004757,,,
