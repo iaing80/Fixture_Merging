@@ -1,14 +1,9 @@
 {
   "new_fixtures": [],
-  "changed_fixtures": [
-    {
-      "heading": "PNFC U10 Boys vs YDP U10 Blue (07/11/2026 10:30)",
-      "detail": "template: 'home' \u2192 'tournament'"
-    }
-  ],
+  "changed_fixtures": [],
   "cancelled_fixtures": [],
   "fa_status_fixtures": [],
-  "run_id": "39731329054",
-  "run_at": "2026-10-22T06:01:07Z",
-  "event": "repository_dispatch"
+  "run_id": "39776333947",
+  "run_at": "2026-10-22T12:11:45Z",
+  "event": "schedule"
 }
