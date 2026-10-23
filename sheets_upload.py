@@ -46,7 +46,7 @@ import random
 import ssl
 import sys
 import time
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -145,6 +145,17 @@ WATCHED_FIELDS = ("date", "kick_off", "venue_name", "opponent", "template")
 # entered, or from an older pipeline run), which isn't a real change.
 CASE_INSENSITIVE_FIELDS = {"venue_name", "opponent"}
 
+# The date column is written as a real date (a Sheets serial number shown
+# through an explicit dd/mm/yyyy format) rather than RAW text, so sorting the
+# tab by date orders by date, not by day-of-month. The explicit format keeps
+# the displayed value — which the PNFC scripts read back via get_all_values()
+# — exactly the DD/MM/YYYY text transform.py produces, whatever the
+# spreadsheet's locale, and writing the serial (not "14/02/2027" through
+# USER_ENTERED) means no locale ever gets to guess day vs month.
+DATE_FIELD = "date"
+DATE_NUMBER_FORMAT = {"type": "DATE", "pattern": "dd/mm/yyyy"}
+SHEETS_EPOCH = date(1899, 12, 30)
+
 # Friendlier field names for the Change Log tab — "template" is the sheet's
 # internal column name for home/away, which isn't obvious out of context.
 CHANGE_LOG_FIELD_LABELS = {"template": "home_away"}
@@ -214,7 +225,7 @@ def batch_write_cells(service, cell_updates: list[tuple]):
     data = [
         {
             "range": f"{SHEET_TAB}!{col_letter(col_index[col_name])}{sheet_row}",
-            "values": [[value]],
+            "values": [[sheet_value(col_name, value)]],
         }
         for sheet_row, col_name, value in cell_updates
     ]
@@ -350,6 +361,68 @@ def parse_sheet_date(raw: str):
     return None
 
 
+def sheet_value(field: str, value):
+    """The value to send for one cell: the date column becomes a Sheets
+    date serial (see DATE_FIELD); anything else, or a date that won't parse,
+    goes as-is."""
+    if field == DATE_FIELD and isinstance(value, str):
+        parsed = parse_sheet_date(value)
+        if parsed is not None:
+            return (parsed - SHEETS_EPOCH).days
+    return value
+
+
+def ensure_date_column_format(service):
+    """Apply the dd/mm/yyyy date format to the whole date column below the
+    header + hint rows. Run before converting/writing dates (so a serial
+    never shows as a bare number) and again after appending (so new rows at
+    the bottom of the grid are covered too). Idempotent."""
+    meta = execute_with_retry(service.spreadsheets().get(
+        spreadsheetId=SPREADSHEET_ID,
+        ranges=[SHEET_TAB],
+        fields="sheets(properties(sheetId))",
+    ))
+    sheets = meta.get("sheets", [])
+    if not sheets:
+        raise RuntimeError(f"Sheet tab '{SHEET_TAB}' not found")
+    date_col = OUTPUT_FIELDS.index(DATE_FIELD)
+    execute_with_retry(service.spreadsheets().batchUpdate(
+        spreadsheetId=SPREADSHEET_ID,
+        body={"requests": [{
+            "repeatCell": {
+                "range": {
+                    "sheetId": sheets[0]["properties"]["sheetId"],
+                    "startRowIndex": FIRST_DATA_ROW - 1,
+                    "startColumnIndex": date_col,
+                    "endColumnIndex": date_col + 1,
+                },
+                "cell": {"userEnteredFormat": {"numberFormat": DATE_NUMBER_FORMAT}},
+                "fields": "userEnteredFormat.numberFormat",
+            },
+        }]},
+    ))
+
+
+def convert_text_dates(service) -> int:
+    """Rewrite any date cell still holding DD/MM/YYYY text (every row
+    written before dates went in as real dates, or one typed in by hand as
+    text) as a real date. Reads the column unformatted, so a real date comes
+    back as a number and is left alone. Returns the number converted."""
+    col = col_letter(OUTPUT_FIELDS.index(DATE_FIELD) + 1)
+    resp = execute_with_retry(service.spreadsheets().values().get(
+        spreadsheetId=SPREADSHEET_ID,
+        range=f"{SHEET_TAB}!{col}{FIRST_DATA_ROW}:{col}",
+        valueRenderOption="UNFORMATTED_VALUE",
+    ))
+    fixes = []
+    for i, cells in enumerate(resp.get("values", []), start=FIRST_DATA_ROW):
+        raw = cells[0] if cells else ""
+        if isinstance(raw, str) and parse_sheet_date(raw) is not None:
+            fixes.append((i, DATE_FIELD, raw))
+    batch_write_cells(service, fixes)
+    return len(fixes)
+
+
 # Amber (Material Design amber 500, #FFC107) used to highlight any row
 # awaiting human review, whatever put it there (CHANGED, CANCELLED?, an FA
 # status flag like POSTPONED, ...).
@@ -443,6 +516,10 @@ def main():
     ensure_fa_status_column(service)
     ensure_review_flag_highlighting(service)
     ensure_change_log_tab(service)
+    ensure_date_column_format(service)
+    converted = convert_text_dates(service)
+    if converted:
+        print(f"Converted {converted} text date(s) to real dates.", file=sys.stderr)
     existing_rows = get_existing_rows(service)
     existing_by_fixture_id = {
         r["fixture_id"].strip(): r for r in existing_rows if r.get("fixture_id", "").strip()
@@ -613,9 +690,10 @@ def main():
     new_summary = [{"heading": fixture_heading(row)} for row in new_rows]
 
     if new_rows:
-        values = [[row.get(col, "") for col in OUTPUT_FIELDS] for row in new_rows]
+        values = [[sheet_value(col, row.get(col, "")) for col in OUTPUT_FIELDS] for row in new_rows]
         print(f"Appending {len(values)} new row(s) to '{SHEET_TAB}' tab...", file=sys.stderr)
         append_rows(service, values)
+        ensure_date_column_format(service)
         print("Done.", file=sys.stderr)
     else:
         print("No new fixtures to upload.", file=sys.stderr)
