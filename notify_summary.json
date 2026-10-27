@@ -1,18 +1,9 @@
 {
-  "new_fixtures": [
-    {
-      "heading": "PNFC U13 Boys vs ICA Sports Youth U13 Boy (08/11/2026 10:00)"
-    }
-  ],
+  "new_fixtures": [],
   "changed_fixtures": [],
   "cancelled_fixtures": [],
-  "fa_status_fixtures": [
-    {
-      "heading": "PNFC U13 Boys vs ICA Sports Youth U13 Boy (08/11/2026 10:00)",
-      "detail": "FA status: Postponed \u2014 check for Spond update"
-    }
-  ],
-  "run_id": "40458659338",
-  "run_at": "2026-10-27T06:01:52Z",
-  "event": "repository_dispatch"
+  "fa_status_fixtures": [],
+  "run_id": "40504312515",
+  "run_at": "2026-10-27T12:30:48Z",
+  "event": "schedule"
 }
