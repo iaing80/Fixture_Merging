@@ -1,18 +1,18 @@
 {
-  "new_fixtures": [],
-  "changed_fixtures": [
+  "new_fixtures": [
     {
-      "heading": "PNFC U13 Boys vs Long Sutton Athletic U13 (08/11/2026 10:00)",
-      "detail": "date: '07/02/2027' \u2192 '08/11/2026'"
-    },
-    {
-      "heading": "PNFC U8 Girls vs Stamford AFC Young Daniels U8 Girl (21/11/2026 11:30)",
-      "detail": "venue_name: 'Uffington Road Playing Field' \u2192 'BORDERVILLE SPORTS CENTRE'"
+      "heading": "PNFC U13 Boys vs ICA Sports Youth U13 Boy (08/11/2026 10:00)"
     }
   ],
+  "changed_fixtures": [],
   "cancelled_fixtures": [],
-  "fa_status_fixtures": [],
-  "run_id": "40333177613",
-  "run_at": "2026-10-26T13:44:17Z",
+  "fa_status_fixtures": [
+    {
+      "heading": "PNFC U13 Boys vs ICA Sports Youth U13 Boy (08/11/2026 10:00)",
+      "detail": "FA status: Postponed \u2014 check for Spond update"
+    }
+  ],
+  "run_id": "40458659338",
+  "run_at": "2026-10-27T06:01:52Z",
   "event": "repository_dispatch"
 }
