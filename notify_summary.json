@@ -1,14 +1,9 @@
 {
   "new_fixtures": [],
-  "changed_fixtures": [
-    {
-      "heading": "PNFC U8 Boys vs G4G FC U8 Green (05/12/2026 12:00)",
-      "detail": "kick_off: '10:30' \u2192 '12:00'"
-    }
-  ],
+  "changed_fixtures": [],
   "cancelled_fixtures": [],
   "fa_status_fixtures": [],
-  "run_id": "42453010533",
-  "run_at": "2026-11-08T06:01:26Z",
-  "event": "repository_dispatch"
+  "run_id": "42486248288",
+  "run_at": "2026-11-08T13:42:53Z",
+  "event": "schedule"
 }
