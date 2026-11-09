@@ -1,6 +1,4 @@
 group_name,date,kick_off,end_time,meet_time_mins,template,opponent,venue_name,venue_address,directions_url,description,rsvp_date,send_date,max_players,auto_accept,responses_admin_only,comments_disabled,banner_colour,status,banner_status,event_id,fixture_id,review_flag,review_detail,fa_status
-PNFC U10 Boys,07/11/2026,10:30,11:30,30,home,Deeping Utd U10 Blue,WERRINGTON LEISURE CENTRE,,,,,,0,FALSE,FALSE,FALSE,,,,,31024908,,,Postponed
-PNFC U13 Boys,08/11/2026,10:00,11:10,30,home,Long Sutton Athletic U13,WERRINGTON LEISURE CENTRE,,,,,,0,FALSE,FALSE,FALSE,,,,,30058157,,,
 PNFC U13 Boys,08/11/2026,10:00,11:10,30,home,ICA Sports Youth U13 Boys,WERRINGTON LEISURE CENTRE,,,,,,0,FALSE,FALSE,FALSE,,,,,30058176,,,Postponed
 PNFC U10 Boys,14/11/2026,10:30,11:30,30,away,Colsterworth Colts JFC U10,SKILLINGTON VILLAGE HALL,,,,,,0,FALSE,FALSE,FALSE,,,,,31025109,,,
 PNFC U11 Boys,14/11/2026,09:30,10:30,30,away,Park Farm Pumas U11 Reds,FLETTON RECREATION GROUND,,,,,,0,FALSE,FALSE,FALSE,,,,,31030189,,,
