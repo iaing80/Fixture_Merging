@@ -1,9 +1,13 @@
 {
-  "new_fixtures": [],
+  "new_fixtures": [
+    {
+      "heading": "PNFC U13 Boys vs Deeping Utd U13 Red (29/11/2026 12:00)"
+    }
+  ],
   "changed_fixtures": [],
   "cancelled_fixtures": [],
   "fa_status_fixtures": [],
-  "run_id": "42840747857",
-  "run_at": "2026-11-10T15:05:43Z",
-  "event": "schedule"
+  "run_id": "42867214707",
+  "run_at": "2026-11-10T17:39:53Z",
+  "event": "repository_dispatch"
 }
