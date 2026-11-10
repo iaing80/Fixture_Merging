@@ -1,9 +1,13 @@
 {
-  "new_fixtures": [],
+  "new_fixtures": [
+    {
+      "heading": "PNFC U10 Boys vs Stamford AFC Young Daniels U10 Silver (21/11/2026 10:30)"
+    }
+  ],
   "changed_fixtures": [],
   "cancelled_fixtures": [],
   "fa_status_fixtures": [],
-  "run_id": "42657416274",
-  "run_at": "2026-11-09T16:42:19Z",
-  "event": "schedule"
+  "run_id": "42765718991",
+  "run_at": "2026-11-10T06:01:25Z",
+  "event": "repository_dispatch"
 }
