@@ -361,6 +361,14 @@ def parse_sheet_date(raw: str):
     return None
 
 
+def is_past_fixture(row: dict, today=None) -> bool:
+    """True if the row's date is before today. An unparseable date counts
+    as not past (fail towards flagging, same as parse_sheet_date callers)."""
+    fixture_date = parse_sheet_date(row.get("date", ""))
+    today = today or datetime.now().date()
+    return fixture_date is not None and fixture_date < today
+
+
 def sheet_value(field: str, value):
     """The value to send for one cell: the date column becomes a Sheets
     date serial (see DATE_FIELD); anything else, or a date that won't parse,
@@ -564,6 +572,16 @@ def main():
         if fa_status_new != fa_status_old:
             cell_updates.append((sheet_row, "fa_status", fa_status_new))
 
+        if fa_status_new and is_past_fixture(row):
+            # A postponed fixture FA still lists on its original (now past)
+            # date has nothing left to do in Spond — don't keep flagging it
+            # for review, and clear a flag an earlier run left behind.
+            if existing.get("review_flag", "").strip() == fa_status_flag(fa_status_new)[0]:
+                cell_updates.append((sheet_row, "review_flag", ""))
+                cell_updates.append((sheet_row, "review_detail", ""))
+                cleared_count += 1
+            continue
+
         if fa_status_new:
             # A confirm_cancel=TRUE row has already had its Spond event
             # cancelled by 17_apply_changes.py (in PNFC) — that's a durable
@@ -681,6 +699,11 @@ def main():
     # rearranged fixture picked up for the first time still showing old
     # notes) — flag it for review immediately rather than waiting for a
     # later run's diff to notice.
+    # A brand-new row that FA lists with a status on a date already past
+    # (e.g. a postponed game first seen after its original date) has
+    # nothing to create or review, so it isn't added to the sheet at all.
+    new_rows = [r for r in new_rows
+                if not (r.get("fa_status", "").strip() and is_past_fixture(r))]
     for row in new_rows:
         fa_status_new = row.get("fa_status", "").strip()
         if fa_status_new:
