@@ -2,13 +2,8 @@
   "new_fixtures": [],
   "changed_fixtures": [],
   "cancelled_fixtures": [],
-  "fa_status_fixtures": [
-    {
-      "heading": "PNFC U11 Boys vs One Touch Football U11 Red (21/11/2026 09:30)",
-      "detail": "FA status: Postponed \u2014 check for Spond update"
-    }
-  ],
-  "run_id": "43375791410",
-  "run_at": "2026-11-13T06:01:26Z",
+  "fa_status_fixtures": [],
+  "run_id": "43407258928",
+  "run_at": "2026-11-13T10:11:45Z",
   "event": "repository_dispatch"
 }
