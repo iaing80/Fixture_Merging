@@ -2,13 +2,8 @@
   "new_fixtures": [],
   "changed_fixtures": [],
   "cancelled_fixtures": [],
-  "fa_status_fixtures": [
-    {
-      "heading": "PNFC U8 Boys vs Cottesmore AFC U8 (14/11/2026 12:30)",
-      "detail": "FA status: Postponed \u2014 check for Spond update"
-    }
-  ],
-  "run_id": "43638303171",
-  "run_at": "2026-11-14T20:35:41Z",
+  "fa_status_fixtures": [],
+  "run_id": "43690487054",
+  "run_at": "2026-11-15T07:33:54Z",
   "event": "repository_dispatch"
 }
