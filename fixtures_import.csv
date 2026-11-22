@@ -1,13 +1,7 @@
 group_name,date,kick_off,end_time,meet_time_mins,template,opponent,venue_name,venue_address,directions_url,description,rsvp_date,send_date,max_players,auto_accept,responses_admin_only,comments_disabled,banner_colour,status,banner_status,event_id,fixture_id,review_flag,review_detail,fa_status
-PNFC U8 Boys,14/11/2026,12:30,13:20,30,home,Cottesmore AFC U8,WERRINGTON LEISURE CENTRE,,,,,,0,FALSE,FALSE,FALSE,,,,,31029994,,,Postponed
 PNFC U8 Boys (Grey),14/11/2026,10:30,11:20,30,home,Peterborough Lions U8 Black,WERRINGTON LEISURE CENTRE,,,,,,0,FALSE,FALSE,FALSE,,,,,31030015,,,
-PNFC U10 Boys,21/11/2026,11:30,12:30,30,away,Stamford AFC Young Daniels U10 Silver,BORDERVILLE SPORTS CENTRE,,,,,,0,FALSE,FALSE,FALSE,,,,,31193986,,,
 PNFC U11 Boys,21/11/2026,09:30,10:30,30,home,One Touch Football U11 Red,WERRINGTON LEISURE CENTRE,,,,,,0,FALSE,FALSE,FALSE,,,,,31030191,,,Postponed
 PNFC U8 Boys,21/11/2026,09:30,10:20,30,away,One Touch Football U8,RYHALL MEADOW PLAYING FIELDS,,,,,,0,FALSE,FALSE,FALSE,,,,,31030037,,,Postponed
-PNFC U8 Girls,21/11/2026,11:30,12:20,30,away,Stamford AFC Young Daniels U8 Girls,BORDERVILLE SPORTS CENTRE,,,,,,0,FALSE,FALSE,FALSE,,,,,31005105,,,
-PNFC U8 Boys (Grey),21/11/2026,10:30,11:20,30,away,Park Farm Pumas U8 Blacks,CARDEA PLAYING FIELDS,,,,,,0,FALSE,FALSE,FALSE,,,,,31030057,,,
-PNFC U9 Boys,21/11/2026,09:30,10:20,30,home,One Touch Football U9 White,WERRINGTON LEISURE CENTRE,,,,,,0,FALSE,FALSE,FALSE,,,,,31024081,,,
-PNFC U9 Girls,21/11/2026,10:30,11:20,30,home,Thrapston Venturas Youth U9 Girls,WERRINGTON LEISURE CENTRE,,,,,,0,FALSE,FALSE,FALSE,,,,,31005101,,,
 PNFC U13 Boys,22/11/2026,10:00,11:10,30,home,Deeping Utd U13 Red,WERRINGTON LEISURE CENTRE,,,,,,0,FALSE,FALSE,FALSE,,,,,30058214,,,
 PNFC U10 Boys,28/11/2026,10:30,11:30,30,away,Nene Valley U10,NENE VALLEY COMMUNITY CENTRE,,,,,,0,FALSE,FALSE,FALSE,,,,,31026560,,,
 PNFC U11 Boys,28/11/2026,09:30,10:30,30,home,Nene Valley U11 Orange,WERRINGTON LEISURE CENTRE,,,,,,0,FALSE,FALSE,FALSE,,,,,31030195,,,

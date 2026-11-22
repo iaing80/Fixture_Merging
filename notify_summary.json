@@ -3,7 +3,7 @@
   "changed_fixtures": [],
   "cancelled_fixtures": [],
   "fa_status_fixtures": [],
-  "run_id": "44915945245",
-  "run_at": "2026-11-21T14:50:01Z",
-  "event": "schedule"
+  "run_id": "44991866067",
+  "run_at": "2026-11-22T06:01:36Z",
+  "event": "repository_dispatch"
 }
