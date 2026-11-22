@@ -1,9 +1,13 @@
 {
-  "new_fixtures": [],
+  "new_fixtures": [
+    {
+      "heading": "PNFC U9 Girls vs Peterborough Northside U8 Girl (12/12/2026 11:30)"
+    }
+  ],
   "changed_fixtures": [],
   "cancelled_fixtures": [],
   "fa_status_fixtures": [],
-  "run_id": "45034598448",
-  "run_at": "2026-11-22T14:46:15Z",
-  "event": "schedule"
+  "run_id": "45035841416",
+  "run_at": "2026-11-22T15:00:26Z",
+  "event": "repository_dispatch"
 }
